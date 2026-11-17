@@ -11,6 +11,7 @@
     "deploy": "npm run build && npx firebase-tools deploy --only hosting,firestore:rules --project guitar-juno"
   },
   "dependencies": {
+    "@soundtouchjs/audio-worklet": "^2.1.1",
     "abcjs": "^6.7.2",
     "firebase": "^13.4.0",
     "lucide-react": "^1.74.0",

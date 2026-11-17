@@ -14,7 +14,9 @@ import {
 import { tunings } from "./data/tunings";
 import { TunerAudio, playReference } from "./lib/audio";
 import { detectPitch, detectPolyphonic } from "./lib/pitch";
-import type { PitchEstimate, StringEstimate } from "./lib/pitch";
+import { PitchTracker } from "./lib/pitch-tracker";
+import type { TrackedPitch } from "./lib/pitch-tracker";
+type TrackedString = TrackedPitch & { cents: number };
 import { frequencyToMidi, midiToFrequency, noteName } from "./lib/theory";
 import "./tuner.css";
 
@@ -31,6 +33,7 @@ export interface TunerViewProps {
   favorites: string[];
   onFavorite: (id: string) => void;
   onActiveChange?: (active: boolean) => void;
+  visible?: boolean;
 }
 const groups = [
   { id: "guitar-6", name: "기타 · 6현" },
@@ -68,6 +71,7 @@ export default function TunerView({
   favorites,
   onFavorite,
   onActiveChange,
+  visible = true,
 }: TunerViewProps) {
   const tuning = tunings.find((item) => item.id === tuningId) ?? tunings[0];
   const strings = customStrings ?? tuning.strings;
@@ -87,19 +91,24 @@ export default function TunerView({
   const [active, setActive] = useState(false);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
-  const [pitch, setPitch] = useState<PitchEstimate | null>(null);
-  const [poly, setPoly] = useState<Array<StringEstimate | null>>([]);
+  const [pitch, setPitch] = useState<TrackedPitch | null>(null);
+  const [poly, setPoly] = useState<Array<TrackedString | null>>([]);
   const [level, setLevel] = useState(0);
   const [clipping, setClipping] = useState(false);
   const [sampleRate, setSampleRate] = useState<number | null>(null);
   const [reference, setReference] = useState<number | null>(null);
   const audio = useRef<TunerAudio | null>(null);
   const request = useRef(0);
-  const history = useRef<number[]>([]);
+  const tracker = useRef(new PitchTracker());
+  const polyTrackers = useRef<PitchTracker[]>([]);
+  const meterEnvelope = useRef({ level: 0, time: 0 });
   const clipUntil = useRef(0);
   const suppressUntil = useRef(0);
   const toneTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onActive = useRef(onActiveChange);
+  const visibleRef = useRef(visible);
+  visibleRef.current = visible;
+  const lastAnalysis = useRef(0);
   onActive.current = onActiveChange;
   const settings = useRef({ frequencies, mode });
   settings.current = { frequencies, mode };
@@ -107,7 +116,8 @@ export default function TunerView({
   const clearReadings = useCallback(() => {
     setPitch(null);
     setPoly([]);
-    history.current = [];
+    tracker.current.reset();
+    polyTrackers.current = [];
   }, []);
   const refreshDevices = useCallback(async () => {
     try {
@@ -137,8 +147,8 @@ export default function TunerView({
     setTarget("auto");
   }, [tuningId, customStrings]);
   useEffect(() => {
-    onActive.current?.(active);
-  }, [active]);
+    onActive.current?.(active || starting);
+  }, [active, starting]);
   useEffect(
     () => () => {
       request.current++;
@@ -155,10 +165,15 @@ export default function TunerView({
     setActive(false);
     setStarting(false);
     setLevel(0);
+    meterEnvelope.current = { level: 0, time: 0 };
     setClipping(false);
     clearReadings();
   }, [clearReadings]);
-  async function start() {
+  useEffect(() => {
+    window.addEventListener("juno:stop-tuner", stop);
+    return () => window.removeEventListener("juno:stop-tuner", stop);
+  }, [stop]);
+  async function start(nextDevice = deviceId, nextChannel = channel) {
     setError("");
     if (!window.isSecureContext) {
       setError(
@@ -174,48 +189,67 @@ export default function TunerView({
       await audio.current.start(
         (frame) => {
           if (request.current !== currentRequest) return;
-          setLevel(frame.level);
-          setSampleRate(frame.sampleRate);
           const now = performance.now();
+          if (!visibleRef.current && now - lastAnalysis.current < 250) return;
+          lastAnalysis.current = now;
+          const envelope = meterEnvelope.current;
+          const elapsed = envelope.time ? now - envelope.time : 80;
+          const displayLevel = Math.max(
+            frame.level,
+            envelope.level * Math.exp(-elapsed / 220),
+          );
+          meterEnvelope.current = { level: displayLevel, time: now };
+          setLevel(displayLevel);
+          setSampleRate(frame.sampleRate);
           if (frame.clipped) clipUntil.current = now + 1500;
           setClipping(now < clipUntil.current);
-          if (frame.level < 0.002 || now < suppressUntil.current) {
+          if (now < suppressUntil.current) {
             clearReadings();
             return;
           }
           const current = settings.current;
           if (current.mode === "poly") {
+            const estimates = detectPolyphonic(
+              frame.samples,
+              frame.sampleRate,
+              current.frequencies,
+            );
+            if (polyTrackers.current.length !== estimates.length) {
+              polyTrackers.current = estimates.map(
+                () =>
+                  new PitchTracker({
+                    attackConfidence: 0.7,
+                    sustainConfidence: 0.62,
+                    holdMs: 650,
+                  }),
+              );
+            }
             setPoly(
-              detectPolyphonic(
-                frame.samples,
-                frame.sampleRate,
-                current.frequencies,
-              ),
+              estimates.map((estimate, index) => {
+                const tracked = polyTrackers.current[index].update(
+                  estimate,
+                  now,
+                  frame.level,
+                );
+                return tracked
+                  ? {
+                      ...tracked,
+                      cents:
+                        1200 *
+                        Math.log2(
+                          tracked.frequency / current.frequencies[index],
+                        ),
+                    }
+                  : null;
+              }),
             );
           } else {
             const found = detectPitch(frame.samples, frame.sampleRate);
-            if (!found) {
-              setPitch(null);
-              history.current = [];
-              return;
-            }
-            if (
-              history.current.length &&
-              Math.abs(
-                1200 * Math.log2(found.frequency / history.current.at(-1)!),
-              ) > 90
-            )
-              history.current = [];
-            history.current = [...history.current.slice(-2), found.frequency];
-            const ordered = [...history.current].sort((a, b) => a - b);
-            setPitch({
-              ...found,
-              frequency: ordered[Math.floor(ordered.length / 2)],
-            });
+            setPitch(tracker.current.update(found, now, frame.level));
           }
         },
-        deviceId || undefined,
-        channel,
+        nextDevice || undefined,
+        nextChannel,
       );
       if (request.current !== currentRequest) return;
       setActive(true);
@@ -233,10 +267,11 @@ export default function TunerView({
     nextDevice: string,
     nextChannel: "mix" | "left" | "right",
   ) {
-    stop();
+    const resume = active || starting;
     setError("");
     setDeviceId(nextDevice);
     setChannel(nextChannel);
+    if (resume) void start(nextDevice, nextChannel);
   }
   async function sound(index: number) {
     if (toneTimer.current) clearTimeout(toneTimer.current);
@@ -269,7 +304,7 @@ export default function TunerView({
   const cents = pitch
     ? 1200 * Math.log2(pitch.frequency / targetFrequency)
     : null;
-  const inTune = cents !== null && Math.abs(cents) <= 4;
+  const inTune = cents !== null && !pitch?.held && Math.abs(cents) <= 4;
   const measuredNote = pitch
     ? noteName(Math.round(frequencyToMidi(pitch.frequency, a4)), false)
     : "—";
@@ -277,8 +312,8 @@ export default function TunerView({
     ? Math.floor(Math.round(frequencyToMidi(pitch.frequency, a4)) / 12) - 1
     : "";
   const meter =
-    level > 0 ? clamp(((20 * Math.log10(level) + 60) / 60) * 100, 0, 100) : 0;
-  const detectedCount = poly.filter(Boolean).length;
+    level > 0 ? clamp(((20 * Math.log10(level) + 80) / 80) * 100, 0, 100) : 0;
+  const detectedCount = poly.filter((result) => result && !result.held).length;
   const favorited = favorites.includes(tuning.id);
 
   return (
@@ -288,6 +323,15 @@ export default function TunerView({
           <p className="eyebrow">TUNER</p>
           <h2>튜너</h2>
         </div>
+        <button
+          type="button"
+          className={`button tuner-mobile-start ${active || starting ? "secondary" : "primary"}`}
+          onClick={active || starting ? stop : () => void start()}
+          aria-label={active || starting ? "튜너 입력 정지" : "튜너 입력 시작"}
+        >
+          {active || starting ? <Square size={15} /> : <Mic size={16} />}{" "}
+          {starting ? "취소" : active ? "정지" : "시작"}
+        </button>
         <div className="segmented tuner-mode" aria-label="튜닝 모드">
           <button
             type="button"
@@ -387,7 +431,10 @@ export default function TunerView({
         </div>
         {mode === "single" ? (
           <>
-            <div className={`tuner-note-area ${inTune ? "is-tuned" : ""}`}>
+            <div
+              className={`tuner-note-area ${inTune ? "is-tuned" : ""}`}
+              style={{ opacity: pitch?.held ? 0.65 : 1 }}
+            >
               <div className="tuner-pitch-note">
                 {measuredNote}
                 <sub>{measuredOctave}</sub>
@@ -395,6 +442,10 @@ export default function TunerView({
               <div className="tuner-cents">
                 {cents === null ? (
                   <span>한 현씩 연주</span>
+                ) : pitch?.held ? (
+                  <span title="신호가 약해 마지막 측정값을 잠시 유지합니다. 현재 튜닝 판정이 아닙니다.">
+                    마지막 측정 · {signed(cents)} ¢
+                  </span>
                 ) : inTune ? (
                   <>
                     <Check size={16} /> 정확해요 <span>{signed(cents)} ¢</span>
@@ -415,7 +466,9 @@ export default function TunerView({
             <div
               className="tuner-gauge"
               aria-label={
-                cents === null ? "측정값 없음" : `${signed(cents)} 센트`
+                cents === null
+                  ? "측정값 없음"
+                  : `${pitch?.held ? "마지막 측정 " : ""}${signed(cents)} 센트`
               }
             >
               <div className="tuner-gauge-zone" />
@@ -430,7 +483,7 @@ export default function TunerView({
                 className="tuner-gauge-needle"
                 style={{
                   left: `${50 + clamp(cents ?? 0, -50, 50)}%`,
-                  opacity: cents === null ? 0.2 : 1,
+                  opacity: cents === null ? 0 : pitch?.held ? 0.4 : 1,
                 }}
               />
               <div className="tuner-gauge-labels">
@@ -441,7 +494,7 @@ export default function TunerView({
             </div>
             <div className="tuner-measurements">
               <span>
-                측정{" "}
+                {pitch?.held ? "마지막" : "측정"}{" "}
                 <b>{pitch ? `${pitch.frequency.toFixed(2)} Hz` : "— Hz"}</b>
               </span>
               <span>
@@ -477,7 +530,10 @@ export default function TunerView({
             >
               {strings.map((midi, index) => {
                 const result = poly[index] ?? null;
-                const tuned = result !== null && Math.abs(result.cents) <= 5;
+                const tuned =
+                  result !== null &&
+                  !result.held &&
+                  Math.abs(result.cents) <= 5;
                 return (
                   <div
                     className={`tuner-poly-string ${result ? "has-signal" : ""} ${tuned ? "is-tuned" : ""}`}
@@ -494,7 +550,7 @@ export default function TunerView({
                       <i
                         style={{
                           bottom: `${50 + clamp(result?.cents ?? 0, -45, 45)}%`,
-                          opacity: result ? 1 : 0.15,
+                          opacity: result ? (result.held ? 0.35 : 1) : 0,
                         }}
                       />
                       <span />
@@ -503,7 +559,11 @@ export default function TunerView({
                       {result ? `${signed(result.cents)} ¢` : "—"}
                     </span>
                     <span className="tuner-string-frequency">
-                      {result ? `${result.frequency.toFixed(1)} Hz` : "미검출"}
+                      {result
+                        ? result.held
+                          ? "마지막 측정"
+                          : `${result.frequency.toFixed(1)} Hz`
+                        : "미검출"}
                     </span>
                     <button
                       type="button"
@@ -613,12 +673,12 @@ export default function TunerView({
             className="tuner-level-meter"
             role="meter"
             aria-label="입력 레벨"
-            aria-valuemin={-60}
+            aria-valuemin={-80}
             aria-valuemax={0}
             aria-valuenow={
               level > 0
-                ? Math.max(-60, Math.round(20 * Math.log10(level)))
-                : -60
+                ? Math.max(-80, Math.round(20 * Math.log10(level)))
+                : -80
             }
           >
             <i style={{ width: `${meter}%` }} />
@@ -628,7 +688,7 @@ export default function TunerView({
             {clipping
               ? "CLIP · 게인을 낮추세요"
               : active && level > 0
-                ? `${Math.max(-60, Math.round(20 * Math.log10(level)))} dBFS`
+                ? `${Math.max(-80, Math.round(20 * Math.log10(level)))} dBFS`
                 : "— dBFS"}
           </span>
         </div>

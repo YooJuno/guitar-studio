@@ -9,13 +9,6 @@ import {
   type User,
   type UserCredential,
 } from "firebase/auth";
-import {
-  doc,
-  getDoc,
-  getFirestore,
-  serverTimestamp,
-  setDoc,
-} from "firebase/firestore";
 
 // Firebase web configuration is public app identification, not an admin credential.
 export const firebaseConfig = {
@@ -29,7 +22,22 @@ export const firebaseConfig = {
 
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Guest practice needs Auth state, but does not need the much larger database
+// client. Load one shared Firestore instance only on a signed-in settings call.
+let storePromise: Promise<{
+  api: typeof import("firebase/firestore");
+  db: import("firebase/firestore").Firestore;
+}> | null = null;
+function store() {
+  storePromise ??= import("firebase/firestore")
+    .then((api) => ({ api, db: api.getFirestore(app) }))
+    .catch((error) => {
+      storePromise = null;
+      throw error;
+    });
+  return storePromise;
+}
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
@@ -55,15 +63,15 @@ function assertCurrentAccount(uid: string) {
   }
 }
 
-function preferencesDocument(uid: string) {
-  assertCurrentAccount(uid);
-  return doc(db, "users", uid, "preferences", "main");
-}
-
 export async function loadPreferences(
   uid: string,
 ): Promise<Record<string, unknown> | null> {
-  const snapshot = await getDoc(preferencesDocument(uid));
+  assertCurrentAccount(uid);
+  const { api, db } = await store();
+  assertCurrentAccount(uid);
+  const snapshot = await api.getDoc(
+    api.doc(db, "users", uid, "preferences", "main"),
+  );
   // An account can change while the request is in flight. Never deliver the old
   // account's response to the caller after that transition.
   assertCurrentAccount(uid);
@@ -78,11 +86,15 @@ export async function savePreferences(
   uid: string,
   data: Record<string, unknown>,
 ): Promise<void> {
+  assertCurrentAccount(uid);
+  const settings = JSON.parse(JSON.stringify(data)) as Record<string, unknown>;
+  const { api, db } = await store();
+  assertCurrentAccount(uid);
   // Persist preferences only. Audio never leaves the browser.
   // Do not merge the settings map: removed favorites/settings must also be removed.
-  await setDoc(preferencesDocument(uid), {
+  await api.setDoc(api.doc(db, "users", uid, "preferences", "main"), {
     schemaVersion: 1,
-    settings: JSON.parse(JSON.stringify(data)) as Record<string, unknown>,
-    updatedAt: serverTimestamp(),
+    settings,
+    updatedAt: api.serverTimestamp(),
   });
 }

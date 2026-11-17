@@ -1,0 +1,29 @@
+JUNO STUDIO - SoundTouchJS third-party notices
+
+The local audio practice player uses these unmodified upstream packages:
+  @soundtouchjs/audio-worklet 2.1.1
+  @soundtouchjs/core 2.1.1
+  @soundtouchjs/worklet-base 2.1.1
+  @soundtouchjs/interpolation-strategy-lanczos 2.1.1
+
+SoundTouch JS audio processing library
+Copyright (c) Steve 'Cutter' Blades
+
+These packages are licensed under the Mozilla Public License, version 2.0
+(MPL-2.0). The package-provided license notice is available at:
+  /licenses/soundtouchjs-MPL-2.0.txt
+The full MPL-2.0 license text is available at:
+  /licenses/MPL-2.0.txt
+  https://www.mozilla.org/en-US/MPL/2.0/
+
+Corresponding source code for upstream release v2.1.1 is freely available at:
+  https://github.com/cutterbl/SoundTouchJS/tree/v2.1.1
+Exact release source commit:
+  https://github.com/cutterbl/SoundTouchJS/tree/d9e39a7ddcf74c7a145bbba45856f30068c82b79
+Download the release source code:
+  https://github.com/cutterbl/SoundTouchJS/archive/d9e39a7ddcf74c7a145bbba45856f30068c82b79.tar.gz
+
+JUNO STUDIO does not modify these library source files. The application loads
+the package's supplied AudioWorklet processor as a separate local asset.
+SoundTouchJS 2.1.1 uses MPL-2.0; the license notices from older LGPL releases
+do not describe the version included in this application.

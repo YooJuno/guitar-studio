@@ -47,7 +47,9 @@ export function detectPitch(
     return null;
   const recent = samples.subarray(Math.max(0, samples.length - 16384));
   const { mean, rms } = signalLevel(recent);
-  if (rms < 0.002) return null;
+  // Phone microphones and a plucked string's tail can be well below -54 dBFS.
+  // Keep an absolute electrical floor, then rely on periodicity to reject noise.
+  if (rms < 0.00015) return null;
   const stride = Math.max(1, Math.floor(sampleRate / 8000));
   const rate = sampleRate / stride;
   const count = Math.floor(recent.length / stride);
@@ -91,7 +93,8 @@ export function detectPitch(
         bestLag = lag;
     }
   }
-  if (bestLag < 0 || normalized[bestLag] > 0.25) return null;
+  const maximumDifference = rms < 0.0006 ? 0.12 : rms < 0.002 ? 0.19 : 0.25;
+  if (bestLag < 0 || normalized[bestLag] > maximumDifference) return null;
   let interpolated = bestLag;
   if (bestLag > 0 && bestLag < maxLag) {
     const left = normalized[bestLag - 1];
@@ -135,7 +138,8 @@ export function detectPitch(
   const residual = fine[minimum] / Math.max(1e-12, 2 * fineWindow * rms * rms);
   return {
     frequency,
-    confidence: clamp(1 - Math.min(normalized[bestLag], residual), 0, 1),
+    // Fine-rate residual avoids penalizing high notes for coarse lag rounding.
+    confidence: clamp(1 - residual, 0, 1),
   };
 }
 
@@ -154,7 +158,7 @@ function spectralPeaks(
   if (size < 2048) return [];
   const values = samples.subarray(samples.length - size);
   const { mean, rms } = signalLevel(values);
-  if (rms < 0.002) return [];
+  if (rms < 0.0003) return [];
   const real = new Float64Array(size);
   const imaginary = new Float64Array(size);
   for (let i = 0; i < size; i++)
@@ -207,7 +211,7 @@ function spectralPeaks(
   if (maximum < rms * 0.12) return [];
   const peaks: SpectralPeak[] = [];
   const binHz = sampleRate / size;
-  const floor = Math.max(0.00012, maximum * 0.003);
+  const floor = Math.max(0.00002, maximum * 0.003);
   for (let bin = 2; bin < magnitude.length - 1; bin++) {
     if (
       magnitude[bin] < floor ||

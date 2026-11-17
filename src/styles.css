@@ -1260,3 +1260,50 @@ kbd {
   opacity: 1;
   cursor: default;
 }
+.tuner-mobile-start {
+  display: none;
+}
+.tuner-live-stop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 9px;
+  border: 1px solid #d9e5cd;
+  border-radius: 7px;
+  background: #e9f3de;
+  color: #67854f;
+}
+.tuner-live-stop:hover {
+  background: #dceec9;
+}
+@media (max-width: 620px) {
+  .tuner-mobile-start {
+    display: inline-flex;
+    min-height: 37px;
+    padding: 7px 13px;
+    font-size: 11px;
+  }
+  .tuner-title-row {
+    justify-content: space-between;
+  }
+  .tuner-input-panel .tuner-start {
+    display: none;
+  }
+  .tuner-channel-select {
+    grid-column: 1/-1;
+  }
+  .tuner-note-area {
+    min-height: 145px;
+    padding: 17px 0 10px;
+  }
+  .tuner-pitch-note {
+    font-size: 82px;
+  }
+  .tuner-gauge {
+    margin-bottom: 9px;
+  }
+  .tuner-live-stop {
+    padding: 5px 7px;
+    gap: 6px;
+  }
+}

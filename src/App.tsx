@@ -189,6 +189,7 @@ export default function App() {
   playingRef.current = playing;
   const [tick, setTick] = useState<Tick | null>(null);
   const [tunerActive, setTunerActive] = useState(false);
+  const [practiceActive, setPracticeActive] = useState(false);
   const metro = useRef(new Metronome());
   const help = useRef<HTMLDialogElement>(null);
   const key = user ? `juno-studio:user:${user.uid}` : "juno-studio:guest";
@@ -313,6 +314,9 @@ export default function App() {
     return () => clearTimeout(id);
   }, [toast]);
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [tab]);
+  useEffect(() => {
     const change = () => setTab(getTab());
     window.addEventListener("hashchange", change);
     return () => window.removeEventListener("hashchange", change);
@@ -414,6 +418,16 @@ export default function App() {
         setToast("오디오를 시작하지 못했습니다.");
       });
   }, []);
+  const onPlaybackActive = useCallback((active: boolean) => {
+    setPracticeActive(active);
+    if (active) {
+      metro.current.stop();
+      playingRef.current = false;
+      setPlaying(false);
+      setTick(null);
+      stopNotes();
+    }
+  }, []);
   useEffect(() => {
     function keyboard(e: KeyboardEvent) {
       if (
@@ -432,12 +446,15 @@ export default function App() {
         el.isContentEditable
       )
         return;
+      if (!readyRef.current) return;
       e.preventDefault();
-      toggleMetro();
+      if (tab === "jazz")
+        window.dispatchEvent(new Event("juno:toggle-practice"));
+      else toggleMetro();
     }
     window.addEventListener("keydown", keyboard);
     return () => window.removeEventListener("keydown", keyboard);
-  }, [toggleMetro]);
+  }, [toggleMetro, tab]);
 
   function navigate(id: Tab) {
     stopNotes();
@@ -455,6 +472,7 @@ export default function App() {
     strings,
     favorites: prefs.favorites,
     onFavorite: favorite,
+    onPlaybackActive,
     onTempo: (bpm: number) => {
       setMetro({ bpm });
       setToast(`${bpm} BPM`);
@@ -530,11 +548,24 @@ export default function App() {
         <header className="topbar">
           <div className="workspace-label">
             <span
-              className={`status-dot ${tunerActive || playing ? "on" : ""}`}
+              className={`status-dot ${tunerActive || playing || practiceActive ? "on" : ""}`}
             />
             <span>WORKSPACE</span>
           </div>
           <div className="topbar-actions">
+            {tunerActive && tab !== "tuner" && (
+              <button
+                className="tuner-live-stop"
+                onClick={() =>
+                  window.dispatchEvent(new Event("juno:stop-tuner"))
+                }
+                title="튜너 입력 정지"
+                aria-label="튜너 입력 정지"
+              >
+                <AudioLines size={15} />
+                <Square size={9} fill="currentColor" />
+              </button>
+            )}
             <button
               type="button"
               className={`sync-state ${sync === "offline" ? "warning" : ""}`}
@@ -652,7 +683,7 @@ export default function App() {
             )}
             {tab === "tuner" && (
               <span className="line-badge">
-                <Headphones size={14} /> LINE IN
+                <Headphones size={14} /> MIC / LINE
               </span>
             )}
           </div>
@@ -662,6 +693,18 @@ export default function App() {
             </div>
           )}
           <div className="tool-content" inert={!hydrated}>
+            <div hidden={tab !== "tuner"}>
+              <TunerView
+                tuningId={prefs.tuningId}
+                customStrings={prefs.customStrings}
+                a4={prefs.a4}
+                onChange={update}
+                favorites={prefs.favorites}
+                onFavorite={favorite}
+                onActiveChange={setTunerActive}
+                visible={tab === "tuner"}
+              />
+            </div>
             <Suspense
               key={key}
               fallback={
@@ -670,17 +713,6 @@ export default function App() {
                 </div>
               }
             >
-              {tab === "tuner" && (
-                <TunerView
-                  tuningId={prefs.tuningId}
-                  customStrings={prefs.customStrings}
-                  a4={prefs.a4}
-                  onChange={update}
-                  favorites={prefs.favorites}
-                  onFavorite={favorite}
-                  onActiveChange={setTunerActive}
-                />
-              )}
               {tab === "chords" && <ChordsView {...musicProps} />}
               {tab === "scales" && <ScalesView {...musicProps} />}
               {tab === "jazz" && <JazzView {...musicProps} />}
@@ -723,7 +755,7 @@ export default function App() {
             </span>
           </footer>
         </main>
-        {tab !== "metronome" && (
+        {tab !== "metronome" && tab !== "jazz" && tab !== "tuner" && (
           <div className="mini-metronome">
             <button
               className="mini-metro-label"

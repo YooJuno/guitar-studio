@@ -1,10 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { renderAbc } from "abcjs";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   Bookmark,
-  Check,
-  ChevronLeft,
-  ChevronRight,
+  ChevronDown,
   ExternalLink,
   FileMusic,
   Play,
@@ -26,6 +23,8 @@ import {
 import { playNotes, stopNotes } from "./lib/synth";
 import { standards } from "./data/standards";
 import type { Standard } from "./data/standards";
+import { parseJazzChord, transposeChord } from "./lib/jazz";
+import JazzPractice from "./JazzPractice";
 import "./music.css";
 
 export interface MusicViewProps {
@@ -33,6 +32,7 @@ export interface MusicViewProps {
   favorites: string[];
   onFavorite: (id: string) => void;
   onTempo: (bpm: number) => void;
+  onPlaybackActive?: (active: boolean) => void;
 }
 
 function RootSelect({
@@ -670,88 +670,35 @@ export function ScalesView({ strings, favorites, onFavorite }: MusicViewProps) {
   );
 }
 
-const naturalPitches: Record<string, number> = {
-  C: 0,
-  D: 2,
-  E: 4,
-  F: 5,
-  G: 7,
-  A: 9,
-  B: 11,
-};
-function transposeName(name: string, semitones: number): string {
-  if (semitones === 0) return name;
-  return name
-    .split("/")
-    .map((part) =>
-      part.replace(
-        /^([A-G])([♭♯#b]?)/,
-        (_, letter: string, accidental: string) =>
-          pitchClasses[
-            (naturalPitches[letter] +
-              (accidental === "♭" || accidental === "b"
-                ? -1
-                : accidental === "♯" || accidental === "#"
-                  ? 1
-                  : 0) +
-              semitones +
-              24) %
-              12
-          ],
-      ),
-    )
-    .join("/");
-}
-function chordFrequencies(chord: string): number[] {
-  const match = chord.match(/^([A-G])([♭♯#b]?)(.*)$/);
-  if (!match) return [];
-  const root =
-    (naturalPitches[match[1]] +
-      (["♭", "b"].includes(match[2])
-        ? -1
-        : ["♯", "#"].includes(match[2])
-          ? 1
-          : 0) +
-      12) %
-    12;
-  const suffix = match[3];
-  let intervals: number[];
-  if (suffix.includes("m7♭5") || suffix.includes("m7b5"))
-    intervals = [0, 3, 6, 10];
-  else if (suffix.includes("dim7")) intervals = [0, 3, 6, 9];
-  else if (suffix.includes("m(maj7)")) intervals = [0, 3, 7, 11];
-  else if (suffix.includes("maj7")) intervals = [0, 4, 7, 11];
-  else if (suffix.includes("m7")) intervals = [0, 3, 7, 10];
-  else if (suffix.includes("m6")) intervals = [0, 3, 7, 9];
-  else if (suffix.includes("7♭9")) intervals = [0, 4, 7, 10, 13];
-  else if (suffix.includes("7♯5")) intervals = [0, 4, 8, 10];
-  else if (suffix.includes("7")) intervals = [0, 4, 7, 10];
-  else if (suffix.includes("6")) intervals = [0, 4, 7, 9];
-  else if (suffix.startsWith("m")) intervals = [0, 3, 7];
-  else intervals = [0, 4, 7];
-  return intervals.map((i) => midiToFrequency(48 + root + i));
-}
-
 function Notation({ abc, transpose }: { abc: string; transpose: number }) {
   const target = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
   useEffect(() => {
-    if (!target.current) return;
-    try {
-      renderAbc(target.current, abc, {
-        responsive: "resize",
-        add_classes: true,
-        visualTranspose: transpose,
-        paddingtop: 18,
-        paddingbottom: 22,
-        staffwidth: 800,
+    const node = target.current;
+    if (!node) return;
+    let cancelled = false;
+    void import("abcjs")
+      .then(({ renderAbc }) => {
+        if (cancelled) return;
+        renderAbc(node, abc, {
+          responsive: "resize",
+          add_classes: true,
+          visualTranspose: transpose,
+          paddingtop: 18,
+          paddingbottom: 22,
+          staffwidth: 800,
+        });
+        setError("");
+      })
+      .catch(() => {
+        if (!cancelled)
+          setError(
+            "악보를 표시하지 못했습니다. 아래 코드 차트를 이용해 주세요.",
+          );
       });
-      setError("");
-    } catch {
-      setError("악보를 표시하지 못했습니다. 아래 코드 차트를 이용해 주세요.");
-    }
     return () => {
-      target.current?.replaceChildren();
+      cancelled = true;
+      node.replaceChildren();
     };
   }, [abc, transpose]);
   return (
@@ -766,18 +713,33 @@ function Notation({ abc, transpose }: { abc: string; transpose: number }) {
   );
 }
 
-export function JazzView({ favorites, onFavorite, onTempo }: MusicViewProps) {
+export function JazzView({
+  favorites,
+  onFavorite,
+  onTempo,
+  onPlaybackActive,
+}: MusicViewProps) {
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const libraryId = useId();
   const [query, setQuery] = useState("");
   const [style, setStyle] = useState("all");
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [selectedId, setSelectedId] = useState(standards[0].id);
   const [transpose, setTranspose] = useState(0);
-  const [tempoApplied, setTempoApplied] = useState(false);
+  const [currentBar, setCurrentBar] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [pdf, setPdf] = useState<{ url: string; name: string } | null>(null);
   const uploadSequence = useRef(0);
   const fileInput = useRef<HTMLInputElement>(null);
   const selected = standards.find((s) => s.id === selectedId)!;
+  const sectionOffsets = useMemo(() => {
+    let offset = 0;
+    return selected.sections.map((section) => {
+      const start = offset;
+      offset += section.bars.length;
+      return start;
+    });
+  }, [selected]);
   const filtered = standards.filter(
     (s) =>
       (style === "all" || s.style === style) &&
@@ -801,9 +763,10 @@ export function JazzView({ favorites, onFavorite, onTempo }: MusicViewProps) {
     [],
   );
   function select(standard: Standard) {
+    setLibraryOpen(false);
     setSelectedId(standard.id);
     setTranspose(0);
-    setTempoApplied(false);
+    setCurrentBar(null);
     setError("");
     stopNotes();
   }
@@ -832,99 +795,122 @@ export function JazzView({ favorites, onFavorite, onTempo }: MusicViewProps) {
   async function hear(chord: string) {
     setError("");
     try {
-      await playNotes(chordFrequencies(chord));
+      const parsed = parseJazzChord(chord);
+      if (!parsed) return;
+      const chordMidis = parsed.intervals.map(
+        (interval) => 48 + parsed.root + interval,
+      );
+      if (parsed.bass !== parsed.root) chordMidis.unshift(36 + parsed.bass);
+      await playNotes(chordMidis.map((midi) => midiToFrequency(midi)));
     } catch {
       setError("코드 소리를 재생하지 못했습니다. 오디오 출력을 확인해 주세요.");
     }
   }
   return (
     <div className="music-jazz-layout">
-      <section className="card music-library">
-        <div className="section-heading">
+      <section
+        className={`card music-library ${libraryOpen ? "library-open" : ""}`}
+      >
+        <div className="section-heading music-library-heading">
           <h3>레퍼토리</h3>
           <span className="small muted">{standards.length}곡</span>
         </div>
-        <label className="music-search">
-          <Search size={17} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="곡 · 작곡가 검색"
-            aria-label="재즈 곡 검색"
-          />
-        </label>
-        <div className="music-library-filters">
-          <select
-            value={style}
-            onChange={(e) => setStyle(e.target.value)}
-            aria-label="장르 필터"
-          >
-            <option value="all">모든 스타일</option>
-            {[...new Set(standards.map((s) => s.style))].map((s) => (
-              <option value={s} key={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <button
-            className={`icon-button ${onlyFavorites ? "saved" : ""}`}
-            aria-label="즐겨찾기만 보기"
-            title="즐겨찾기만 보기"
-            aria-pressed={onlyFavorites}
-            onClick={() => setOnlyFavorites(!onlyFavorites)}
-          >
-            <Bookmark
-              size={17}
-              fill={onlyFavorites ? "currentColor" : "none"}
+        <button
+          type="button"
+          className="music-library-toggle"
+          aria-expanded={libraryOpen}
+          aria-controls={libraryId}
+          aria-label={`레퍼토리 변경 · ${selected.title}`}
+          title="곡 선택"
+          onClick={() => setLibraryOpen((open) => !open)}
+        >
+          <span>레퍼토리</span>
+          <strong>{selected.title}</strong>
+          <ChevronDown size={17} />
+        </button>
+        <div className="music-library-content" id={libraryId}>
+          <label className="music-search">
+            <Search size={17} />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="곡 · 작곡가 검색"
+              aria-label="재즈 곡 검색"
             />
-          </button>
-        </div>
-        <div className="music-song-list">
-          {filtered.map((s) => (
-            <article
-              className={`music-song ${s.id === selectedId ? "selected" : ""}`}
-              key={s.id}
+          </label>
+          <div className="music-library-filters">
+            <select
+              value={style}
+              onChange={(e) => setStyle(e.target.value)}
+              aria-label="장르 필터"
             >
-              <button
-                className="music-song-select"
-                onClick={() => select(s)}
-                aria-pressed={s.id === selectedId}
-              >
-                <strong>{s.title}</strong>
-                <span>
-                  {s.key} <i>·</i> {s.style}
-                </span>
-                <small>
-                  {s.kind === "exercise"
-                    ? "오리지널 연습곡"
-                    : s.kind === "traditional"
-                      ? "전통 선율 악보"
-                      : `${s.form} · ${s.difficulty}`}
-                </small>
-              </button>
-              <FavoriteButton
-                saved={favorites.includes(`jazz:${s.id}`)}
-                onClick={() => onFavorite(`jazz:${s.id}`)}
-                label={s.title}
-              />
-            </article>
-          ))}
-        </div>
-        {!filtered.length && (
-          <div className="music-empty">
-            <p>조건에 맞는 곡이 없어요.</p>
+              <option value="all">모든 스타일</option>
+              {[...new Set(standards.map((s) => s.style))].map((s) => (
+                <option value={s} key={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
             <button
-              className="button secondary"
-              onClick={() => {
-                setQuery("");
-                setStyle("all");
-                setOnlyFavorites(false);
-              }}
+              className={`icon-button ${onlyFavorites ? "saved" : ""}`}
+              aria-label="즐겨찾기만 보기"
+              title="즐겨찾기만 보기"
+              aria-pressed={onlyFavorites}
+              onClick={() => setOnlyFavorites(!onlyFavorites)}
             >
-              전체 곡 보기
+              <Bookmark
+                size={17}
+                fill={onlyFavorites ? "currentColor" : "none"}
+              />
             </button>
           </div>
-        )}
+          <div className="music-song-list">
+            {filtered.map((s) => (
+              <article
+                className={`music-song ${s.id === selectedId ? "selected" : ""}`}
+                key={s.id}
+              >
+                <button
+                  className="music-song-select"
+                  onClick={() => select(s)}
+                  aria-pressed={s.id === selectedId}
+                >
+                  <strong>{s.title}</strong>
+                  <span>
+                    {s.key} <i>·</i> {s.style}
+                  </span>
+                  <small>
+                    {s.kind === "exercise"
+                      ? "오리지널 연습곡"
+                      : s.kind === "traditional"
+                        ? "전통 선율 악보"
+                        : `${s.form} · ${s.difficulty}`}
+                  </small>
+                </button>
+                <FavoriteButton
+                  saved={favorites.includes(`jazz:${s.id}`)}
+                  onClick={() => onFavorite(`jazz:${s.id}`)}
+                  label={s.title}
+                />
+              </article>
+            ))}
+          </div>
+          {!filtered.length && (
+            <div className="music-empty">
+              <p>조건에 맞는 곡이 없어요.</p>
+              <button
+                className="button secondary"
+                onClick={() => {
+                  setQuery("");
+                  setStyle("all");
+                  setOnlyFavorites(false);
+                }}
+              >
+                전체 곡 보기
+              </button>
+            </div>
+          )}
+        </div>
       </section>
       <div className="stack music-score-column">
         <section className="card music-score-card">
@@ -951,45 +937,15 @@ export function JazzView({ favorites, onFavorite, onTempo }: MusicViewProps) {
             <span>{selected.form}</span>
             <span>{selected.difficulty}</span>
           </div>
-          <div className="music-score-toolbar">
-            <div className="music-transpose">
-              <span className="small muted">연습 키</span>
-              <button
-                className="icon-button"
-                aria-label="반음 내리기"
-                title="반음 내리기"
-                disabled={transpose <= -11}
-                onClick={() => setTranspose((n) => n - 1)}
-              >
-                <ChevronLeft size={17} />
-              </button>
-              <strong>{transposeName(selected.key, transpose)}</strong>
-              <button
-                className="icon-button"
-                aria-label="반음 올리기"
-                title="반음 올리기"
-                disabled={transpose >= 11}
-                onClick={() => setTranspose((n) => n + 1)}
-              >
-                <ChevronRight size={17} />
-              </button>
-              {transpose !== 0 && (
-                <button className="music-reset" onClick={() => setTranspose(0)}>
-                  원키
-                </button>
-              )}
-            </div>
-            <button
-              className="button secondary"
-              onClick={() => {
-                onTempo(selected.bpm);
-                setTempoApplied(true);
-              }}
-            >
-              {tempoApplied ? <Check size={15} /> : <Play size={14} />}{" "}
-              {selected.bpm} BPM {tempoApplied ? "적용됨" : "적용"}
-            </button>
-          </div>
+          <JazzPractice
+            key={selected.id}
+            standard={selected}
+            transpose={transpose}
+            onTranspose={setTranspose}
+            onPosition={setCurrentBar}
+            onActiveChange={onPlaybackActive}
+            onTempo={onTempo}
+          />
           {selected.abc ? (
             <>
               <div className="music-score-label">
@@ -1036,7 +992,15 @@ export function JazzView({ favorites, onFavorite, onTempo }: MusicViewProps) {
                 <span className="music-section-letter">{section.label}</span>
                 <div className="music-bar-grid">
                   {section.bars.map((bar, barIndex) => (
-                    <div className="music-bar" key={barIndex}>
+                    <div
+                      className={`music-bar ${currentBar === sectionOffsets[sectionIndex] + barIndex ? "is-playing" : ""}`}
+                      aria-current={
+                        currentBar === sectionOffsets[sectionIndex] + barIndex
+                          ? "step"
+                          : undefined
+                      }
+                      key={barIndex}
+                    >
                       <small>
                         {selected.sections
                           .slice(0, sectionIndex)
@@ -1046,7 +1010,7 @@ export function JazzView({ favorites, onFavorite, onTempo }: MusicViewProps) {
                       </small>
                       <div>
                         {bar.map((chord, chordIndex) => {
-                          const transposed = transposeName(chord, transpose);
+                          const transposed = transposeChord(chord, transpose);
                           return (
                             <button
                               key={chordIndex}
