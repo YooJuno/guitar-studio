@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // A user has access to precisely one preferences document belonging to them.
+    match /users/{userId}/preferences/main {
+      allow get, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['schemaVersion', 'settings', 'updatedAt'])
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.settings is map
+        && request.resource.data.updatedAt == request.time;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
