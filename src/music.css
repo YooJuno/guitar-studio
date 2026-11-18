@@ -1239,15 +1239,14 @@
     max-width: 64ch;
   }
   .music-jazz-layout {
-    height: max(360px, var(--workspace-height));
-    grid-template-rows: minmax(0, 1fr);
-    align-items: stretch;
+    align-items: start;
     gap: 10px;
   }
   .music-jazz-layout .music-library {
     display: flex;
     flex-direction: column;
     min-height: 0;
+    max-height: max(260px, min(540px, var(--workspace-height)));
     position: relative;
     padding: 12px !important;
   }
@@ -1263,17 +1262,12 @@
   .music-jazz-layout .music-score-card {
     display: flex;
     flex-direction: column;
-    min-height: 0;
-    padding: 12px !important;
-    overflow-y: auto;
+    padding: 10px !important;
   }
   .music-score-card > .music-score-heading {
     margin-bottom: 4px;
   }
   .music-score-card > .jazz-practice {
-    flex-shrink: 0;
-    position: relative;
-    top: auto;
     margin: 0 0 8px;
   }
   .music-score-toolbar {
@@ -1288,37 +1282,53 @@
     padding: 5px 8px;
     min-height: 40px;
   }
-  .music-score-pane {
-    flex: 1 1 auto;
-    min-height: 104px;
-    overflow: auto;
-    overscroll-behavior-y: contain;
-    scrollbar-width: thin;
-    border-radius: 4px;
+  .music-sheet {
+    border: 1px solid #e0e6d7;
+    border-radius: 10px;
   }
-  .music-score-pane:focus-visible {
-    outline: 2px solid #729b51;
-    outline-offset: -2px;
+  .music-sheet-toggle {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    min-height: 46px;
+    padding: 8px 12px;
+    text-align: left;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: 650;
+    color: #26301f;
+  }
+  .music-sheet-toggle:hover,
+  .music-sheet-toggle[aria-expanded="true"] {
+    background: #f1f5ea;
+  }
+  .music-sheet-toggle > span {
+    flex: 1;
+  }
+  .music-sheet-toggle[aria-expanded="true"] > svg:last-child {
+    transform: rotate(180deg);
+  }
+  .music-sheet-content {
+    padding: 9px 8px 11px;
   }
   .music-score-pane .music-notation {
     margin: 0;
   }
   .music-score-pane .music-pdf-preview {
-    height: max(155px, calc(var(--workspace-height) - 396px));
+    height: clamp(350px, 76dvh, 960px);
   }
   .music-score-pane > .section-heading {
     justify-content: flex-end;
     margin: 0 0 6px;
   }
-  .music-chart-section {
-    margin-bottom: 8px;
+  .music-sheet .music-charts {
+    gap: 14px;
   }
 }
 @media screen and (max-width: 1100px) {
-  .music-jazz-layout {
-    grid-template-rows: auto minmax(0, 1fr);
-  }
   .music-jazz-layout .music-library {
+    max-height: none;
     padding: 1px 8px 1px 12px !important;
     z-index: 10;
   }
@@ -1387,5 +1397,19 @@
 @media screen and (max-height: 630px) and (max-width: 680px) {
   .music-fretboard.is-compact {
     max-height: 36dvh;
+  }
+}
+
+@media screen and (min-width: 360px) and (max-width: 500px) {
+  .music-sheet .music-bar-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .music-sheet .music-bar {
+    padding-inline: 5px;
+    min-height: 61px;
+  }
+  .music-sheet .music-bar button {
+    font-size: 14px;
+    overflow-wrap: anywhere;
   }
 }

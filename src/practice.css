@@ -1,16 +1,15 @@
 .jazz-practice {
   position: relative;
 }
-.practice-follow:not(:has(.practice-settings[open])) {
+.practice-follow {
   position: sticky;
-  top: 8px;
+  top: max(6px, env(safe-area-inset-top));
   z-index: 5;
 }
 .jazz-practice {
   border: 1px solid #cbd5bf;
   border-radius: 12px;
-  padding: 16px;
-  margin: 20px 0;
+  padding: 8px;
   background: #f5f8ef;
   font-variant-numeric: tabular-nums;
   color: #26301f;
@@ -21,7 +20,6 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 8px;
-  padding-right: 38px;
 }
 .practice-source {
   display: flex;
@@ -83,7 +81,7 @@
 }
 .practice-transport {
   display: grid;
-  grid-template-columns: 44px 32px minmax(90px, 1fr) minmax(130px, 1fr) 40px;
+  grid-template-columns: 44px minmax(78px, 106px) minmax(0, 1fr) 44px;
   align-items: center;
   gap: 8px;
 }
@@ -108,34 +106,18 @@
   background: #e0e7d6;
   color: #68745b;
 }
-.practice-restart {
-  width: 32px;
-  height: 40px;
-  color: #3d4a32;
-}
 .practice-bpm {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-}
-.practice-bpm > button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 40px;
-  color: #34462a;
-}
-.practice-bpm label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
+  gap: 3px;
+  min-width: 0;
+  white-space: nowrap;
 }
 .practice-bpm input {
-  width: 52px !important;
-  height: 31px;
+  box-sizing: content-box;
+  width: 3.6ch !important;
+  height: 38px;
   padding: 0 !important;
   margin: 0 !important;
   border: 0 !important;
@@ -143,40 +125,66 @@
   background: transparent !important;
   text-align: center;
   font-family: ui-monospace, monospace;
-  font-size: 28px !important;
-  font-weight: 500;
+  font-size: 20px !important;
+  font-weight: 600;
   color: #26301f !important;
 }
 .practice-bpm span {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 550;
   color: #46513f;
-  letter-spacing: 0;
 }
-.practice-key {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  min-width: 0;
-}
-.practice-key .icon-button {
-  width: 32px;
-  height: 40px;
-  color: #34462a;
-}
-.practice-key select.practice-key-label {
+.practice-transport .practice-key-label {
   width: 100%;
   min-width: 0;
-  min-height: 40px;
-  padding: 7px;
-  text-align: start;
+  max-width: 180px;
+  min-height: 44px;
+  margin: 0;
+  padding: 6px;
   border: 1px solid #c6d1b9;
   background: white;
   color: #26301f;
   font-size: 16px;
   font-weight: 650;
-  border-radius: 7px;
+  border-radius: 8px;
+}
+.practice-expand {
+  width: 44px;
+  height: 44px;
+}
+.practice-expand[aria-expanded="true"] {
+  color: #2d4b1b;
+  background: #dcebcf;
+}
+.practice-expand[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.practice-expanded {
+  padding: 8px 4px 4px;
+}
+.practice-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 9px;
+}
+.practice-step {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid #d3dec6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 550;
+}
+.practice-step .icon-button {
+  width: 31px;
+  height: 36px;
+}
+.practice-restart {
+  width: 39px;
+  height: 40px;
 }
 .practice-loop {
   width: 40px;
@@ -193,7 +201,7 @@
   height: 3px;
   overflow: hidden;
   border-radius: 2px;
-  margin: 10px 0 8px;
+  margin: 5px 0 0;
   background: #d9e2cd;
 }
 .practice-progress > i {
@@ -239,44 +247,13 @@
   background: #fff !important;
   border-color: #c6d1b9 !important;
 }
-.practice-settings {
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.practice-settings > summary {
-  position: absolute;
-  top: 14px;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  list-style: none;
-  cursor: pointer;
-  color: #34462a;
-  border-radius: 7px;
-}
-.practice-settings > summary::-webkit-details-marker {
-  display: none;
-}
-.practice-settings > summary:hover,
-.practice-settings[open] > summary {
-  background: #dcebcf;
-  color: #263f17;
-}
-.practice-settings > summary > svg {
-  width: 19px;
-  height: 19px;
-}
 .practice-mixer {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
-  padding: 18px 0 12px;
+  padding: 10px 0 7px;
   border-top: 1px solid #d3dec6;
-  margin-top: 14px;
+  margin-top: 9px;
 }
 .practice-mixer > label {
   display: flex;
@@ -354,6 +331,8 @@
   accent-color: #5d7e42;
 }
 .practice-rate select {
+  width: 100%;
+  max-width: 140px;
   font-size: 16px !important;
   min-height: 40px !important;
   height: 40px;
@@ -369,23 +348,6 @@
 }
 .practice-file-input {
   display: none;
-}
-.practice-upload {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 62px;
-  border: 1px dashed #a8ba95;
-  border-radius: 8px;
-  color: #34462a;
-  background: #fbfdf8;
-  font-size: 15px;
-  font-weight: 600;
-}
-.practice-upload:hover {
-  background: #e8f0df;
 }
 .practice-file-name {
   display: flex;
@@ -501,81 +463,35 @@
 .music-bar.is-playing button {
   color: #23400e;
 }
-.music-score-card:has(.jazz-practice) {
-  overflow: visible;
-}
-@media (max-width: 1100px) {
-  .practice-transport {
-    gap: 5px;
-    grid-template-columns: 44px 28px minmax(90px, 1fr) minmax(120px, 1fr) 40px;
-  }
-  .practice-restart {
-    width: 28px;
-  }
-  .practice-key .icon-button {
-    width: 28px;
-  }
-}
 @media (max-width: 620px) {
-  .jazz-practice {
-    top: 6px;
-    margin: 0 0 14px;
-    padding: 10px;
+  .practice-transport {
+    grid-template-columns: 44px minmax(71px, 82px) minmax(0, 1fr) 44px;
+    gap: 5px;
   }
   .practice-topline {
-    gap: 8px;
-    padding-right: 36px;
+    gap: 6px;
   }
   .practice-source {
     gap: 3px;
   }
   .practice-source button {
-    padding: 6px 8px;
+    padding: 6px;
   }
-  .practice-status {
-    font-size: 14px;
-  }
-  .practice-transport {
-    grid-template-columns: 44px minmax(84px, 1fr) minmax(106px, 1.2fr) 40px;
-    gap: 5px;
-  }
-  .practice-restart,
-  .practice-key > button {
-    display: none;
-  }
-  .practice-key,
-  .practice-rate select {
-    width: 100%;
-  }
-  .practice-bpm > button {
-    width: 26px;
-    min-width: 24px;
-    height: 44px;
-    padding: 0;
-  }
-  .practice-bpm input {
-    font-size: 23px !important;
-    width: 38px !important;
+  .practice-output-status {
+    gap: 4px;
   }
   .practice-quick-controls {
-    gap: 8px;
+    gap: 7px;
   }
   .practice-loop-range {
     gap: 4px;
   }
   .practice-loop-range select {
-    width: 52px;
+    width: 51px;
   }
   .practice-style {
     padding: 4px 6px !important;
-    max-width: 110px;
-  }
-  .practice-master input {
-    width: 110px;
-  }
-  .practice-settings > summary {
-    top: 9px;
-    right: 8px;
+    width: 91px;
   }
   .practice-mixer {
     gap: 8px;
@@ -601,36 +517,25 @@
 
 @media (max-width: 365px) {
   .practice-transport {
-    grid-template-columns: 44px minmax(0, 1fr) 40px;
+    grid-template-columns: 44px 70px minmax(0, 1fr) 40px;
+    gap: 4px;
   }
-  .practice-key {
-    grid-row: 2;
-    grid-column: 1 / -1;
+  .practice-expand {
+    width: 40px;
   }
-  .practice-loop {
-    grid-row: 1;
-    grid-column: 3;
+  .practice-bpm input {
+    font-size: 19px !important;
   }
-  .practice-source button {
-    padding-inline: 5px;
+  .practice-transport .practice-key-label {
+    padding-inline: 4px;
   }
-  .practice-output-status {
-    gap: 5px;
-  }
-  .practice-quick-controls {
-    gap: 5px;
-  }
-  .practice-loop-range select {
-    width: 49px;
-  }
-  .practice-style {
-    width: 80px;
+  .practice-step .icon-button {
+    width: 28px;
   }
 }
-
 @media (max-height: 520px) {
-  .practice-follow:not(:has(.practice-settings[open])) {
+  .practice-follow {
     position: relative;
-    top: 0;
+    top: auto;
   }
 }
