@@ -16,8 +16,21 @@ export class TunerAudio {
   private analyser: AnalyserNode | null = null;
   private splitter: ChannelSplitterNode | null = null;
   private animation = 0;
+  private monitoring = true;
+  private readFrame: FrameRequestCallback | null = null;
   private generation = 0;
   private releaseSession: (() => void) | null = null;
+
+  /** Pause waveform reads while keeping the input stream open. */
+  setMonitoring(enabled: boolean): void {
+    this.monitoring = enabled;
+    if (!enabled && this.animation) {
+      cancelAnimationFrame(this.animation);
+      this.animation = 0;
+    }
+    if (enabled && !this.animation && this.readFrame)
+      this.animation = requestAnimationFrame(this.readFrame);
+  }
 
   async start(
     onFrame: (frame: AudioFrame) => void,
@@ -79,7 +92,12 @@ export class TunerAudio {
       const samples = new Float32Array(analyser.fftSize);
       let last = 0;
       const tick = (time: number) => {
-        if (generation !== this.generation || context.state === "closed")
+        this.animation = 0;
+        if (
+          !this.monitoring ||
+          generation !== this.generation ||
+          context.state === "closed"
+        )
           return;
         this.animation = requestAnimationFrame(tick);
         if (time - last < 80) return;
@@ -113,7 +131,8 @@ export class TunerAudio {
           clipped: peak >= 0.985,
         });
       };
-      this.animation = requestAnimationFrame(tick);
+      this.readFrame = tick;
+      this.setMonitoring(this.monitoring);
     } catch (error) {
       if (generation === this.generation) this.stop();
       throw error;
@@ -124,6 +143,7 @@ export class TunerAudio {
     this.generation++;
     if (this.animation) cancelAnimationFrame(this.animation);
     this.animation = 0;
+    this.readFrame = null;
     this.source?.disconnect();
     this.analyser?.disconnect();
     this.splitter?.disconnect();

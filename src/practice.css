@@ -1,7 +1,12 @@
 .jazz-practice {
+  position: relative;
+}
+.practice-follow:not(:has(.practice-settings[open])) {
   position: sticky;
   top: 8px;
   z-index: 5;
+}
+.jazz-practice {
   border: 1px solid #cbd5bf;
   border-radius: 12px;
   padding: 16px;
@@ -15,7 +20,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
   padding-right: 38px;
 }
 .practice-source {
@@ -38,7 +43,7 @@
   background: #dcebcf;
 }
 .practice-status {
-  font-family: "DM Mono", monospace;
+  font-family: ui-monospace, monospace;
   font-size: 14px;
   font-weight: 500;
   color: #46513f;
@@ -137,7 +142,7 @@
   border-radius: 3px !important;
   background: transparent !important;
   text-align: center;
-  font-family: "DM Mono", monospace;
+  font-family: ui-monospace, monospace;
   font-size: 28px !important;
   font-weight: 500;
   color: #26301f !important;
@@ -160,13 +165,18 @@
   height: 40px;
   color: #34462a;
 }
-.practice-key-label {
+.practice-key select.practice-key-label {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 7px;
+  text-align: start;
+  border: 1px solid #c6d1b9;
+  background: white;
+  color: #26301f;
   font-size: 16px;
   font-weight: 650;
-  color: #26301f;
-  padding: 7px 2px;
-  min-width: 75px;
-  white-space: nowrap;
+  border-radius: 7px;
 }
 .practice-loop {
   width: 40px;
@@ -183,7 +193,7 @@
   height: 3px;
   overflow: hidden;
   border-radius: 2px;
-  margin: 16px 0 12px;
+  margin: 10px 0 8px;
   background: #d9e2cd;
 }
 .practice-progress > i {
@@ -211,7 +221,7 @@
   height: 36px;
   font-size: 16px !important;
   padding: 4px 6px !important;
-  font-family: "DM Mono", monospace;
+  font-family: ui-monospace, monospace;
   color: #26301f;
   background: #fff !important;
   border-color: #c6d1b9 !important;
@@ -221,7 +231,7 @@
   color: #46513f;
 }
 .practice-style {
-  font-size: 14px !important;
+  font-size: 16px !important;
   min-height: 36px !important;
   height: 36px;
   padding: 4px 8px !important;
@@ -296,7 +306,7 @@
   max-width: 210px;
 }
 .practice-countin select {
-  font-size: 14px !important;
+  font-size: 16px !important;
   min-height: 36px !important;
   height: 36px;
   padding: 4px 8px !important;
@@ -349,7 +359,7 @@
   height: 40px;
   padding: 5px 9px !important;
   margin: 0 !important;
-  font-family: "DM Mono", monospace;
+  font-family: ui-monospace, monospace;
   color: #26301f;
   background: #fff !important;
   border-color: #c6d1b9 !important;
@@ -420,7 +430,7 @@
   min-height: 36px;
   background: #e0ebd4;
   color: #2d4b1b;
-  font-family: "DM Mono", monospace;
+  font-family: ui-monospace, monospace;
   font-size: 14px;
 }
 .practice-ab small {
@@ -452,7 +462,7 @@
   color: #26301f;
 }
 .practice-pitch {
-  font-family: "DM Mono", monospace;
+  font-family: ui-monospace, monospace;
   font-size: 14px;
   color: #46513f;
 }
@@ -509,8 +519,8 @@
 @media (max-width: 620px) {
   .jazz-practice {
     top: 6px;
-    margin: 18px -4px;
-    padding: 14px 12px;
+    margin: 0 0 14px;
+    padding: 10px;
   }
   .practice-topline {
     gap: 8px;
@@ -526,48 +536,26 @@
     font-size: 14px;
   }
   .practice-transport {
-    grid-template-columns: 44px minmax(0, 1fr) 40px;
-    gap: 7px;
+    grid-template-columns: 44px minmax(84px, 1fr) minmax(106px, 1.2fr) 40px;
+    gap: 5px;
   }
-  .practice-play {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .practice-restart {
+  .practice-restart,
+  .practice-key > button {
     display: none;
   }
-  .practice-bpm,
-  .practice-rate {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  .practice-key {
-    grid-column: 1/-1;
-    grid-row: 2;
-    justify-content: center;
-  }
-  .practice-key .icon-button {
-    width: 40px;
-    height: 40px;
-  }
-  .practice-key-label {
-    font-size: 17px;
-    min-width: 110px;
-  }
-  .practice-loop {
-    grid-column: 3;
-    grid-row: 1;
-  }
-  .practice-bpm > button {
-    width: 36px;
-    height: 40px;
-  }
-  .practice-bpm input {
-    font-size: 28px !important;
-    width: 56px !important;
-  }
+  .practice-key,
   .practice-rate select {
     width: 100%;
+  }
+  .practice-bpm > button {
+    width: 26px;
+    min-width: 24px;
+    height: 44px;
+    padding: 0;
+  }
+  .practice-bpm input {
+    font-size: 23px !important;
+    width: 38px !important;
   }
   .practice-quick-controls {
     gap: 8px;
@@ -586,8 +574,8 @@
     width: 110px;
   }
   .practice-settings > summary {
-    top: 13px;
-    right: 10px;
+    top: 9px;
+    right: 8px;
   }
   .practice-mixer {
     gap: 8px;
@@ -611,9 +599,38 @@
   }
 }
 
-.practice-topline {
-  flex-wrap: wrap;
+@media (max-width: 365px) {
+  .practice-transport {
+    grid-template-columns: 44px minmax(0, 1fr) 40px;
+  }
+  .practice-key {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+  .practice-loop {
+    grid-row: 1;
+    grid-column: 3;
+  }
+  .practice-source button {
+    padding-inline: 5px;
+  }
+  .practice-output-status {
+    gap: 5px;
+  }
+  .practice-quick-controls {
+    gap: 5px;
+  }
+  .practice-loop-range select {
+    width: 43px;
+  }
+  .practice-style {
+    width: 80px;
+  }
 }
-.practice-status {
-  margin-left: auto;
+
+@media (max-height: 520px) {
+  .practice-follow:not(:has(.practice-settings[open])) {
+    position: relative;
+    top: 0;
+  }
 }

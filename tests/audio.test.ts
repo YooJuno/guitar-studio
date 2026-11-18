@@ -201,6 +201,38 @@ function fixture(
   };
 }
 
+test("a hidden tuner stops reading samples but keeps its input open", async (t) => {
+  const env = fixture(t);
+  const mic = stream();
+  env.media.getUserMedia = async () => mic;
+  const tuner = new TunerAudio();
+  t.after(() => tuner.stop());
+  let readings = 0;
+
+  tuner.setMonitoring(false);
+  await tuner.start(() => readings++);
+  assert.equal(env.frames.size, 0);
+  assert.equal(mic.track.stopped, false);
+  assert.equal(env.audioSession.type, "play-and-record");
+
+  tuner.setMonitoring(true);
+  env.frame(100);
+  assert.equal(readings, 1);
+  tuner.setMonitoring(false);
+  assert.equal(env.frames.size, 0);
+  env.frame(200);
+  assert.equal(readings, 1);
+  assert.equal(mic.track.stopped, false);
+
+  tuner.setMonitoring(true);
+  env.frame(300);
+  assert.equal(readings, 2);
+  assert.equal(env.contexts.length, 1);
+  tuner.stop();
+  assert.equal(env.frames.size, 0);
+  assert.equal(mic.track.stopped, true);
+});
+
 test("interrupted tuner emits loss frames, preserves live capture, then resumes fresh samples", async (t) => {
   const env = fixture(t);
   const mic = stream();

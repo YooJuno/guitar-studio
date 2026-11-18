@@ -1,5 +1,6 @@
 import {
   lazy,
+  memo,
   Suspense,
   useCallback,
   useEffect,
@@ -25,28 +26,24 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import type { User } from "firebase/auth";
-import {
-  loginWithGoogle,
-  logout,
-  subscribeAuth,
-  loadPreferences,
-  savePreferences,
-} from "./lib/firebase";
 import { defaultMetronome, Metronome } from "./lib/metronome";
 import type { MetronomeConfig, Tick } from "./lib/metronome";
 import { tunings } from "./data/tunings";
 import { stopNotes } from "./lib/synth";
-import TunerView from "./TunerView";
-import MetronomeView from "./MetronomeView";
-const ChordsView = lazy(() =>
-  import("./MusicViews").then((module) => ({ default: module.ChordsView })),
+const TunerView = memo(lazy(() => import("./TunerView")));
+const MetronomeView = lazy(() => import("./MetronomeView"));
+const loadAccount = () => import("./lib/firebase");
+const ChordsView = memo(
+  lazy(() =>
+    import("./MusicViews").then((module) => ({ default: module.ChordsView })),
+  ),
 );
-const ScalesView = lazy(() =>
-  import("./MusicViews").then((module) => ({ default: module.ScalesView })),
+const ScalesView = memo(
+  lazy(() =>
+    import("./MusicViews").then((module) => ({ default: module.ScalesView })),
+  ),
 );
-const JazzView = lazy(() =>
-  import("./MusicViews").then((module) => ({ default: module.JazzView })),
-);
+const JazzView = memo(lazy(() => import("./JazzView")));
 
 type Tab = "tuner" | "chords" | "scales" | "jazz" | "metronome";
 interface Preferences {
@@ -166,16 +163,28 @@ function errorText(error: unknown) {
     : "연결하지 못했습니다. 잠시 후 다시 시도해 주세요.";
 }
 
+function LoadingTool() {
+  return (
+    <div className="load-strip" role="status" aria-label="불러오는 중">
+      <LoaderCircle size={20} className="spin" aria-hidden="true" />
+    </div>
+  );
+}
+
 export default function App() {
   const [tab, setTab] = useState<Tab>(getTab);
+  const [tunerVisited, setTunerVisited] = useState(tab === "tuner");
+  const account = useRef<Awaited<ReturnType<typeof loadAccount>> | null>(null);
+  const observedUid = useRef<string | null>(null);
+  const lastAccountKey = useRef("juno-studio:guest");
   const [user, setUser] = useState<User | null>(null);
   const [authKnown, setAuthKnown] = useState(false);
   const [loginBusy, setLoginBusy] = useState(false);
   const [prefs, setPrefs] = useState<Preferences>(() =>
     readLocal("juno-studio:guest"),
   );
-  const [ready, setReady] = useState(false);
-  const [hydratedKey, setHydratedKey] = useState("");
+  const [ready, setReady] = useState(true);
+  const [hydratedKey, setHydratedKey] = useState("juno-studio:guest");
   const [retryLoad, setRetryLoad] = useState(0);
   const [cloudAllowed, setCloudAllowed] = useState(false);
   const [sync, setSync] = useState<
@@ -187,7 +196,7 @@ export default function App() {
   playingRef.current = playing;
   const [tick, setTick] = useState<Tick | null>(null);
   const [tunerActive, setTunerActive] = useState(false);
-  const metro = useRef(new Metronome());
+  const [metro] = useState(() => new Metronome());
   const help = useRef<HTMLDialogElement>(null);
   const key = user ? `juno-studio:user:${user.uid}` : "juno-studio:guest";
   const prefsRef = useRef(prefs);
@@ -199,16 +208,35 @@ export default function App() {
     tunings.find((t) => t.id === prefs.tuningId) ?? tunings[0];
   const strings = prefs.customStrings ?? activeTuning.strings;
 
-  useEffect(
-    () =>
-      subscribeAuth((u) => {
-        setReady(false);
-        setCloudAllowed(false);
-        setUser(u);
-        setAuthKnown(true);
-      }),
-    [],
-  );
+  useEffect(() => {
+    let disposed = false;
+    let unsubscribe: (() => void) | undefined;
+    void loadAccount()
+      .then((api) => {
+        if (disposed) return;
+        account.current = api;
+        unsubscribe = api.subscribeAuth((next) => {
+          const uid = next?.uid ?? null;
+          if (uid !== observedUid.current) {
+            observedUid.current = uid;
+            setReady(false);
+            setCloudAllowed(false);
+          }
+          setUser(next);
+          setAuthKnown(true);
+        });
+      })
+      .catch(() => {
+        if (!disposed) setAuthKnown(true);
+      });
+    return () => {
+      disposed = true;
+      unsubscribe?.();
+    };
+  }, []);
+  useEffect(() => {
+    if (tab === "tuner") setTunerVisited(true);
+  }, [tab]);
   useEffect(() => {
     const retry = () => {
       if (sync === "offline") setRetryLoad((n) => n + 1);
@@ -217,12 +245,14 @@ export default function App() {
     return () => window.removeEventListener("online", retry);
   }, [sync]);
   useEffect(() => {
-    if (!authKnown) return;
+    const api = account.current;
+    if (!api || !authKnown || (!user && lastAccountKey.current === key)) return;
+    lastAccountKey.current = key;
     let cancelled = false;
     setReady(false);
     setCloudAllowed(false);
     setSync(user ? "loading" : "local");
-    metro.current.stop();
+    metro.stop();
     setPlaying(false);
     setTick(null);
     stopNotes();
@@ -238,7 +268,7 @@ export default function App() {
     const timeout = new Promise<never>((_, reject) => {
       timeoutId = setTimeout(() => reject(new Error("timeout")), 8000);
     });
-    Promise.race([loadPreferences(uid), timeout])
+    Promise.race([api.loadPreferences(uid), timeout])
       .then((remote) => {
         if (cancelled) return;
         let pending = false;
@@ -275,7 +305,8 @@ export default function App() {
     } catch {
       setToast("기기 저장 공간을 사용할 수 없습니다.");
     }
-    if (!user || !cloudAllowed) return;
+    const api = account.current;
+    if (!api || !user || !cloudAllowed) return;
     let cancelled = false;
     const timer = setTimeout(() => {
       setSync("saving");
@@ -285,7 +316,8 @@ export default function App() {
       } catch {
         /* optional cache */
       }
-      savePreferences(user.uid, prefs as unknown as Record<string, unknown>)
+      api
+        .savePreferences(user.uid, prefs as unknown as Record<string, unknown>)
         .then(() => {
           if (cancelled) return;
           try {
@@ -320,21 +352,21 @@ export default function App() {
   }, []);
   useEffect(
     () => () => {
-      metro.current.stop();
+      metro.stop();
       stopNotes();
     },
     [],
   );
   useEffect(() => {
     const stop = () => {
-      metro.current.stop();
+      metro.stop();
       setPlaying(false);
     };
     window.addEventListener("pagehide", stop);
     return () => window.removeEventListener("pagehide", stop);
   }, []);
   useEffect(() => {
-    metro.current.config = prefs.metronome;
+    metro.config = prefs.metronome;
   }, [prefs.metronome]);
 
   const markPending = useCallback(() => {
@@ -380,7 +412,7 @@ export default function App() {
         "timerMinutes",
       ];
       if (structural.some((k) => k in patch)) {
-        metro.current.stop();
+        metro.stop();
         setPlaying(false);
         setTick(null);
       }
@@ -393,22 +425,27 @@ export default function App() {
   );
   const toggleMetro = useCallback(() => {
     if (!readyRef.current) return;
-    if (metro.current === null) return;
     if (playingRef.current) {
       playingRef.current = false;
-      metro.current.stop();
+      metro.stop();
       setPlaying(false);
       setTick(null);
       return;
     }
     playingRef.current = true;
     setPlaying(true);
-    metro.current.config = prefsRef.current.metronome;
-    void metro.current
-      .start(setTick, () => {
-        playingRef.current = false;
-        setPlaying(false);
-      })
+    metro.config = prefsRef.current.metronome;
+    void metro
+      .start(
+        (next) => {
+          // The visual beat displays do not change on subdivisions.
+          if (next.sub === 0) setTick(next);
+        },
+        () => {
+          playingRef.current = false;
+          setPlaying(false);
+        },
+      )
       .catch(() => {
         playingRef.current = false;
         setPlaying(false);
@@ -417,7 +454,7 @@ export default function App() {
   }, []);
   const onPlaybackActive = useCallback((active: boolean) => {
     if (active) {
-      metro.current.stop();
+      metro.stop();
       playingRef.current = false;
       setPlaying(false);
       setTick(null);
@@ -459,20 +496,30 @@ export default function App() {
   }
   function login() {
     setLoginBusy(true);
-    void loginWithGoogle()
+    if (!account.current) {
+      setLoginBusy(false);
+      setToast("로그인을 불러오지 못했습니다. 새로고침해 주세요.");
+      return;
+    }
+    void account.current
+      .loginWithGoogle()
       .catch((e) => setToast(errorText(e)))
       .finally(() => setLoginBusy(false));
   }
+  const sendTempo = useCallback(
+    (bpm: number) => {
+      setMetro({ bpm });
+      setToast(`${bpm} BPM`);
+    },
+    [setMetro],
+  );
   const current = nav.find((n) => n.id === tab)!;
   const musicProps = {
     strings,
     favorites: prefs.favorites,
     onFavorite: favorite,
     onPlaybackActive,
-    onTempo: (bpm: number) => {
-      setMetro({ bpm });
-      setToast(`${bpm} BPM`);
-    },
+    onTempo: sendTempo,
   };
 
   return (
@@ -517,19 +564,19 @@ export default function App() {
             >
               <Code2 size={18} />
             </a>
-            <button
-              className="icon-button"
-              onClick={() => help.current?.showModal()}
-              title="도움말"
-              aria-label="도움말"
-            >
-              <CircleHelp size={18} />
-            </button>
           </div>
         </div>
       </aside>
       <div className="main-shell">
         <header className="topbar">
+          <a className="mobile-brand" href="#tuner" aria-label="Juno Studio 홈">
+            <span className="brand-mark">
+              <AudioLines size={19} />
+            </span>
+            <span>
+              juno<span className="brand-light">studio</span>
+            </span>
+          </a>
           <div className="topbar-actions">
             {tunerActive && tab !== "tuner" && (
               <button
@@ -598,7 +645,9 @@ export default function App() {
                 <button
                   className="icon-button"
                   onClick={() =>
-                    void logout().catch((e) => setToast(errorText(e)))
+                    void account.current
+                      ?.logout()
+                      .catch((e) => setToast(errorText(e)))
                   }
                   title="로그아웃"
                   aria-label="로그아웃"
@@ -659,26 +708,23 @@ export default function App() {
             </div>
           )}
           <div className="tool-content" inert={!hydrated}>
-            <div hidden={tab !== "tuner"}>
-              <TunerView
-                tuningId={prefs.tuningId}
-                customStrings={prefs.customStrings}
-                a4={prefs.a4}
-                onChange={update}
-                favorites={prefs.favorites}
-                onFavorite={favorite}
-                onActiveChange={setTunerActive}
-                visible={tab === "tuner"}
-              />
-            </div>
-            <Suspense
-              key={key}
-              fallback={
-                <div className="load-strip">
-                  <LoaderCircle size={17} className="spin" />
-                </div>
-              }
-            >
+            {(tab === "tuner" || tunerVisited) && (
+              <div hidden={tab !== "tuner"}>
+                <Suspense fallback={<LoadingTool />}>
+                  <TunerView
+                    tuningId={prefs.tuningId}
+                    customStrings={prefs.customStrings}
+                    a4={prefs.a4}
+                    onChange={update}
+                    favorites={prefs.favorites}
+                    onFavorite={favorite}
+                    onActiveChange={setTunerActive}
+                    visible={tab === "tuner"}
+                  />
+                </Suspense>
+              </div>
+            )}
+            <Suspense key={key} fallback={<LoadingTool />}>
               {tab === "chords" && <ChordsView {...musicProps} />}
               {tab === "scales" && <ScalesView {...musicProps} />}
               {tab === "jazz" && <JazzView {...musicProps} />}

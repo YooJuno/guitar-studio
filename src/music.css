@@ -299,6 +299,7 @@
 .music-library {
   padding: 22px 17px !important;
 }
+.music-library-toolbar,
 .music-library-toggle {
   display: none;
 }
@@ -841,7 +842,7 @@
   .music-library-toggle > svg {
     transition: transform 0.15s;
   }
-  .music-library.library-open .music-library-toggle > svg {
+  .music-library.library-open .music-library-toggle > svg:last-child {
     transform: rotate(180deg);
   }
   .music-library-content {
@@ -1102,5 +1103,36 @@
   }
   .music-bar-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 1100px) {
+  .music-library-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .music-library-toggle {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+  }
+  .music-library-toolbar > .music-favorite {
+    flex-shrink: 0;
+    min-height: 44px;
+  }
+  .music-score-heading {
+    display: none;
+  }
+}
+@media screen and (max-width: 620px) {
+  .music-jazz-layout {
+    gap: 12px;
+  }
+  .music-jazz-layout .music-library {
+    padding: 5px 10px 5px 14px !important;
+  }
+  .music-jazz-layout .music-score-card {
+    padding: 12px !important;
   }
 }

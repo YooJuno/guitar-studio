@@ -9,12 +9,10 @@
 .tuner-toolbar {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  flex-direction: row-reverse;
   gap: 14px;
   margin-bottom: 20px;
-}
-.tuner-mobile-start {
-  display: none;
 }
 .tuner-mode {
   display: flex;
@@ -333,7 +331,7 @@
 }
 .tuner-input-fields {
   display: grid;
-  grid-template-columns: minmax(0, 250px) 110px max-content;
+  grid-template-columns: minmax(0, 250px) 110px;
   gap: 12px;
   align-items: end;
 }
@@ -355,15 +353,13 @@
   white-space: nowrap;
   font-size: 14px;
 }
-.tuner-start.primary,
-.tuner-mobile-start.primary {
+.tuner-start.primary {
   border: 1px solid var(--tuner-ink);
   color: #f6faf1;
   background: var(--tuner-ink);
   border-radius: 7px;
 }
-.tuner-start.secondary,
-.tuner-mobile-start.secondary {
+.tuner-start.secondary {
   border: 1px solid var(--tuner-line);
   background: #fff;
   border-radius: 7px;
@@ -678,22 +674,20 @@
 @media (max-width: 680px) {
   .tuner-toolbar {
     justify-content: space-between;
-    margin-bottom: 17px;
+    margin-bottom: 12px;
     gap: 10px;
-  }
-  .tuner-mode {
-    order: -1;
   }
   .tuner-mode button {
     padding: 9px 10px;
     font-size: 14px;
   }
-  .tuner-mobile-start {
+  .tuner-start {
+    min-width: 79px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 7px;
-    min-height: 42px;
+    min-height: 44px;
     padding: 8px 13px;
     font-size: 14px;
   }
@@ -707,15 +701,15 @@
     padding: 0 8px;
   }
   .tuner-screen {
-    padding: 16px 16px 20px;
+    padding: 12px 14px 14px;
     border-radius: 10px;
   }
   .tuner-note-area {
-    padding: 16px 0;
-    min-height: 165px;
+    padding: 10px 0;
+    min-height: 128px;
   }
   .tuner-pitch-note {
-    font-size: 88px;
+    font-size: 78px;
   }
   .tuner-gauge {
     width: 88%;
@@ -724,21 +718,25 @@
     gap: 8px 16px;
   }
   .tuner-string-picker {
-    gap: 2px;
-    margin-bottom: 18px;
+    gap: 3px;
+    margin-bottom: 10px;
   }
   .tuner-string-picker button {
-    padding: 7px 8px;
+    padding: 6px;
+  }
+  .tuner-input-panel {
+    padding-top: 10px;
+    margin-top: 10px;
   }
   .tuner-input-fields {
-    grid-template-columns: minmax(0, 1fr) 110px;
+    grid-template-columns: minmax(0, 1fr) 94px;
     gap: 10px;
+  }
+  .tuner-channel-select {
+    width: auto;
   }
   .tuner-device-select {
     max-width: none;
-  }
-  .tuner-input-panel .tuner-start {
-    display: none;
   }
   .tuner-level-row {
     gap: 9px;
@@ -756,7 +754,7 @@
 }
 @media (max-width: 380px) {
   .tuner-preset-row > label:first-child {
-    width: 118px;
+    width: clamp(98px, 32vw, 118px);
   }
   .tuner-preset-row {
     gap: 7px;
@@ -765,7 +763,7 @@
     width: 40px;
   }
   .tuner-pitch-note {
-    font-size: 80px;
+    font-size: 70px;
   }
   .tuner-measurements {
     gap: 6px 12px;

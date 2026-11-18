@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { CSSProperties } from "react";
 import {
   ArrowDown,
@@ -98,7 +105,7 @@ export default function TunerView({
   const [reference, setReference] = useState<number | null>(null);
   const audio = useRef<TunerAudio | null>(null);
   const request = useRef(0);
-  const tracker = useRef(new PitchTracker());
+  const [tracker] = useState(() => new PitchTracker());
   const polyTrackers = useRef<PitchTracker[]>([]);
   const meterEnvelope = useRef({ level: 0, time: 0 });
   const clipUntil = useRef(0);
@@ -107,7 +114,6 @@ export default function TunerView({
   const onActive = useRef(onActiveChange);
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
-  const lastAnalysis = useRef(0);
   onActive.current = onActiveChange;
   const settings = useRef({ frequencies, mode });
   settings.current = { frequencies, mode };
@@ -115,9 +121,19 @@ export default function TunerView({
   const clearReadings = useCallback(() => {
     setPitch(null);
     setPoly([]);
-    tracker.current.reset();
+    tracker.reset();
     polyTrackers.current = [];
-  }, []);
+  }, [tracker]);
+  useLayoutEffect(() => {
+    audio.current?.setMonitoring(visible);
+    if (!visible) {
+      clearReadings();
+      meterEnvelope.current = { level: 0, time: 0 };
+      clipUntil.current = 0;
+      setLevel(0);
+      setClipping(false);
+    }
+  }, [visible, clearReadings]);
   const refreshDevices = useCallback(async () => {
     try {
       if (navigator.mediaDevices?.enumerateDevices) {
@@ -184,13 +200,12 @@ export default function TunerView({
     setStarting(true);
     clearReadings();
     audio.current ??= new TunerAudio();
+    audio.current.setMonitoring(visibleRef.current);
     try {
       await audio.current.start(
         (frame) => {
           if (request.current !== currentRequest) return;
           const now = performance.now();
-          if (!visibleRef.current && now - lastAnalysis.current < 250) return;
-          lastAnalysis.current = now;
           const envelope = meterEnvelope.current;
           const elapsed = envelope.time ? now - envelope.time : 80;
           const displayLevel = Math.max(
@@ -243,7 +258,7 @@ export default function TunerView({
             );
           } else {
             const found = detectPitch(frame.samples, frame.sampleRate);
-            setPitch(tracker.current.update(found, now, frame.level));
+            setPitch(tracker.update(found, now, frame.level));
           }
         },
         nextDevice || undefined,
@@ -319,7 +334,7 @@ export default function TunerView({
       <div className="tuner-toolbar">
         <button
           type="button"
-          className={`button tuner-mobile-start ${active || starting ? "secondary" : "primary"}`}
+          className={`button tuner-start ${active || starting ? "secondary" : "primary"}`}
           onClick={active || starting ? stop : () => void start()}
           aria-label={active || starting ? "튜너 입력 정지" : "튜너 입력 시작"}
         >
@@ -339,7 +354,7 @@ export default function TunerView({
             type="button"
             className={mode === "poly" ? "active" : ""}
             aria-pressed={mode === "poly"}
-            title="실험 기능: 개방현을 함께 분석합니다. 배음이 겹치거나 신호가 약하면 미검출·오검출이 생길 수 있습니다. 마지막은 한 현씩 확인하세요."
+            title="동시 튜닝 · 실험"
             onClick={() => setMode("poly")}
           >
             동시에 <span className="tuner-beta">실험</span>
@@ -654,17 +669,6 @@ export default function TunerView({
               <option value="mix">L + R</option>
             </select>
           </label>
-          <button
-            type="button"
-            className={`button ${active || starting ? "secondary" : "primary"} tuner-start`}
-            onClick={active || starting ? stop : () => void start()}
-            aria-label={
-              active || starting ? "튜너 입력 정지" : "튜너 입력 시작"
-            }
-          >
-            {active || starting ? <Square size={16} /> : <Mic size={17} />}
-            {starting ? "취소" : active ? "정지" : "시작"}
-          </button>
         </div>
         <div className={`tuner-level-row ${clipping ? "is-clipping" : ""}`}>
           <Mic size={16} aria-hidden="true" />

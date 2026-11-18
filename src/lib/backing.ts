@@ -561,7 +561,6 @@ export class JazzBacking {
         // JavaScript callbacks. Continue only when the browser resumes output.
         if (context.state !== "running") return;
         const current = this.config;
-        this.applyLevels(current);
         if (this.nextTime < context.currentTime) {
           // Skip stale visual work and resume this musical position without an audio burst.
           this.callbacks.forEach(clearTimeout);

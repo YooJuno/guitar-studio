@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -112,7 +112,7 @@ function BackingOutput({
   );
 }
 
-export default function JazzPractice({
+function JazzPractice({
   standard,
   transpose,
   onTranspose,
@@ -149,7 +149,7 @@ export default function JazzPractice({
   const [fileRoot, setFileRoot] = useState(baseRoot);
   const filePitch =
     ((((baseRoot + transpose - fileRoot + 6) % 12) + 12) % 12) - 6;
-  const backing = useRef(new JazzBacking());
+  const [backing] = useState(() => new JazzBacking());
   const local = useRef<LocalTrack | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const generation = useRef(0);
@@ -210,7 +210,7 @@ export default function JazzPractice({
   }
   const stopAll = useCallback(() => {
     generation.current++;
-    backing.current.stop();
+    backing.stop();
     local.current?.pause();
     setBackingPlaying(false);
     setStarting(false);
@@ -218,14 +218,14 @@ export default function JazzPractice({
     lastBar.current = null;
     callbacks.current.onPosition(null);
     callbacks.current.onActiveChange?.(false);
-  }, []);
+  }, [backing]);
   const audioInterrupted = useCallback(() => {
     stopAll();
     setError("오디오가 중단됐습니다. 다시 재생해 주세요.");
   }, [stopAll]);
   useEffect(() => {
-    backing.current.update(config);
-  }, [config]);
+    backing.update(config);
+  }, [backing, config]);
   useEffect(() => {
     try {
       local.current?.update({
@@ -260,13 +260,13 @@ export default function JazzPractice({
       mounted.current = false;
       generation.current++;
       loadGeneration.current++;
-      backing.current.stop();
+      backing.stop();
       local.current?.dispose();
       callbacks.current.onPosition(null);
       callbacks.current.onActiveChange?.(false);
       window.removeEventListener("pagehide", pageHide);
     };
-  }, [stopAll]);
+  }, [backing, stopAll]);
 
   async function playBacking(startBar?: number, skipCountIn = false) {
     const token = ++generation.current;
@@ -277,7 +277,7 @@ export default function JazzPractice({
     setPosition(null);
     callbacks.current.onActiveChange?.(true);
     try {
-      await backing.current.start(
+      await backing.start(
         { ...configRef.current, ...(skipCountIn ? { countIn: 0 } : {}) },
         (next) => {
           if (!mounted.current || token !== generation.current) return;
@@ -320,7 +320,7 @@ export default function JazzPractice({
   async function playFile() {
     if (!local.current || !fileName) return;
     const token = ++generation.current;
-    backing.current.stop();
+    backing.stop();
     setBackingPlaying(false);
     setError("");
     setStarting(true);
@@ -424,7 +424,16 @@ export default function JazzPractice({
     setError("");
   }
   const playing = source === "backing" ? backingPlaying : trackState.playing;
-  const transposedKey = transposeChord(standard.key, transpose);
+  const keyOptions = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, root) => {
+        const shift = ((root - baseRoot + 18) % 12) - 6;
+        return { shift, label: transposeChord(standard.key, shift) };
+      }),
+    [baseRoot, standard.key],
+  );
+  const selectedShift = ((transpose + 18) % 12) - 6;
+  const keyDisabled = source === "file" && !trackState.pitchSupported;
   const progress =
     position && !position.countIn
       ? ((position.bar + position.beat / meter.beats) / bars.length) * 100
@@ -439,7 +448,10 @@ export default function JazzPractice({
   }, [standard]);
 
   return (
-    <section className="jazz-practice" aria-label="재즈 반주 플레이어">
+    <section
+      className={`jazz-practice ${source === "backing" && playing ? "practice-follow" : ""}`}
+      aria-label="재즈 반주 플레이어"
+    >
       <div className="practice-topline">
         <div className="practice-source" role="group" aria-label="오디오 소스">
           <button
@@ -462,7 +474,7 @@ export default function JazzPractice({
         </div>
         <div className="practice-output-status">
           <BackingOutput
-            engine={backing.current}
+            engine={backing}
             active={backingPlaying}
             onInterrupted={audioInterrupted}
           />
@@ -596,30 +608,30 @@ export default function JazzPractice({
             className="icon-button"
             aria-label="반주 키 반음 내리기"
             title="반음 내리기"
-            disabled={
-              transpose <= -11 ||
-              (source === "file" && !trackState.pitchSupported)
-            }
+            disabled={transpose <= -11 || keyDisabled}
             onClick={() => onTranspose(transpose - 1)}
           >
             <ChevronLeft size={17} />
           </button>
-          <button
+          <select
             className="practice-key-label"
-            title="원키로"
-            aria-label={`${transposedKey} · 원키로 되돌리기`}
-            onClick={() => onTranspose(0)}
+            aria-label="연습 키"
+            title={`키 선택 · 원키 ${standard.key}`}
+            value={selectedShift}
+            disabled={keyDisabled}
+            onChange={(event) => onTranspose(+event.target.value)}
           >
-            {transposedKey}
-          </button>
+            {keyOptions.map(({ shift, label }) => (
+              <option value={shift} key={shift}>
+                {label}
+              </option>
+            ))}
+          </select>
           <button
             className="icon-button"
             aria-label="반주 키 반음 올리기"
             title="반음 올리기"
-            disabled={
-              transpose >= 11 ||
-              (source === "file" && !trackState.pitchSupported)
-            }
+            disabled={transpose >= 11 || keyDisabled}
             onClick={() => onTranspose(transpose + 1)}
           >
             <ChevronRight size={17} />
@@ -953,3 +965,5 @@ export default function JazzPractice({
     </section>
   );
 }
+
+export default memo(JazzPractice);

@@ -52,7 +52,7 @@ Audio Session API를 지원하면 반주·메트로놈·연습음을 `playback`�
 - 마스터·악기별 레벨을 모두 1로 올리고 ±11반음 키 이동·고속 템포를 적용한 8마디 스트레스 렌더: Swing 피크 0.737, Bossa 0.693, Ballad 0.702, Straight 0.758. 모두 디지털 클리핑 없음.
 - 이 수치는 실제 M4A에서 디코딩한 PCM을 같은 `JazzInstruments`와 연주 계획으로 OfflineAudioContext에서 렌더링한 결과다. 브라우저 출력이나 사람의 청취 평가는 포함하지 않는다.
 
-반주 계획·스케줄러 테스트 15개와 샘플 뱅크 테스트 4개를 포함해 전체 자동 테스트 71개가 통과했다.
+반주 계획·스케줄러 테스트 15개와 샘플 뱅크 테스트 4개를 포함해 전체 자동 테스트 72개가 통과했다.
 
 - [Splendid Grand Piano 녹음의 출처와 공개 도메인 안내](https://github.com/smpldsnds/sfzinstruments-splendid-grand-piano)
 - [D. Smolken 더블베이스와 CC0 라이선스](https://github.com/smpldsnds/sfzinstruments-dsmolken-double-bass)
