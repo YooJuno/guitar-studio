@@ -10,9 +10,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-direction: row-reverse;
   gap: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 .tuner-mode {
   display: flex;
@@ -36,14 +35,6 @@
   color: #263324;
   background: #fff;
   box-shadow: 0 1px 4px #1d241d0d;
-}
-.tuner-beta {
-  font-size: 14px;
-  padding: 2px 5px;
-  border: 1px solid #b9c5ae;
-  border-radius: 4px;
-  margin-left: 4px;
-  color: #48583d;
 }
 .tuner-preset-row {
   display: flex;
@@ -77,8 +68,7 @@
 }
 .tuner-view select:focus-visible,
 .tuner-view input:focus-visible,
-.tuner-view button:focus-visible,
-.tuner-view summary:focus-visible {
+.tuner-view button:focus-visible {
   outline: 2px solid #91bc66;
   outline-offset: 3px;
 }
@@ -324,20 +314,11 @@
   font-size: 14px;
   color: #5e714f;
 }
-.tuner-input-panel {
-  border-top: 1px solid var(--tuner-line);
-  padding-top: 18px;
-  margin-top: 20px;
-}
 .tuner-input-fields {
   display: grid;
-  grid-template-columns: minmax(0, 250px) 110px;
+  grid-template-columns: minmax(0, 1fr) 94px;
   gap: 12px;
   align-items: end;
-}
-.tuner-device-select {
-  min-width: 0;
-  max-width: 250px;
 }
 .tuner-channel-select {
   width: 110px;
@@ -424,29 +405,34 @@
   line-height: 1.6;
   border-radius: 0 6px 6px 0;
 }
-.tuner-settings {
-  margin-top: 24px;
-  border-top: 1px solid var(--tuner-line);
-  color: #34462b;
-}
-.tuner-settings > summary {
-  list-style: none;
+.tuner-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 16px 0;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  gap: 6px;
 }
-.tuner-settings > summary::-webkit-details-marker {
-  display: none;
+.tuner-settings-trigger {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--tuner-line);
+  background: var(--paper);
 }
-.tuner-settings[open] > summary > svg {
-  transform: rotate(180deg);
+.tuner-settings {
+  width: min(470px, calc(100% - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 16px;
+  border: 1px solid var(--tuner-line);
+  border-radius: 14px;
+  color: var(--ink);
+  background: var(--paper);
 }
-.tuner-settings-content {
-  padding: 3px 0 18px;
+.tuner-settings::backdrop {
+  background: #17210d66;
+}
+.tuner-settings .section-heading {
+  margin-bottom: 8px;
+}
+.tuner-settings .panel-tabs {
+  margin-bottom: 12px;
 }
 .tuner-calibration {
   display: flex;
@@ -706,7 +692,7 @@
   }
   .tuner-note-area {
     padding: 10px 0;
-    min-height: 128px;
+    min-height: 108px;
   }
   .tuner-pitch-note {
     font-size: 78px;
@@ -724,10 +710,6 @@
   .tuner-string-picker button {
     padding: 6px;
   }
-  .tuner-input-panel {
-    padding-top: 10px;
-    margin-top: 10px;
-  }
   .tuner-input-fields {
     grid-template-columns: minmax(0, 1fr) 94px;
     gap: 10px;
@@ -735,10 +717,8 @@
   .tuner-channel-select {
     width: auto;
   }
-  .tuner-device-select {
-    max-width: none;
-  }
   .tuner-level-row {
+    margin-top: 8px;
     gap: 9px;
   }
   .tuner-poly-grid {
@@ -771,11 +751,76 @@
   .tuner-mode button {
     padding: 8px;
   }
-  .tuner-beta {
-    margin-left: 2px;
-    padding: 2px 4px;
-  }
   .tuner-custom-strings {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.tuner-view label > select,
+.tuner-view label input[type="number"] {
+  margin-top: 0;
+}
+@media (max-width: 680px) {
+  .tuner-preset-row {
+    margin-bottom: 9px;
+  }
+  .tuner-string-picker {
+    display: grid;
+    grid-template-columns: repeat(var(--targets), minmax(0, 1fr));
+    margin-block: 8px;
+  }
+  .tuner-string-picker button {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-height: 43px;
+    padding: 3px 0;
+    white-space: nowrap;
+  }
+  .tuner-poly-grid {
+    grid-template-columns: repeat(var(--strings), minmax(0, 1fr));
+  }
+  .tuner-poly-string > b {
+    font-size: clamp(17px, 4.3vw, 24px);
+    white-space: nowrap;
+  }
+  .tuner-poly-reference {
+    min-width: 28px;
+    padding-inline: 3px;
+  }
+}
+@media (max-height: 630px) and (max-width: 680px) {
+  .tuner-view label {
+    gap: 4px;
+  }
+  .tuner-toolbar {
+    margin-bottom: 8px;
+  }
+  .tuner-screen {
+    padding: 9px 10px 10px;
+  }
+  .tuner-note-area {
+    min-height: 86px;
+    padding: 0;
+  }
+  .tuner-pitch-note {
+    font-size: 58px;
+  }
+  .tuner-gauge {
+    height: 39px;
+    margin-bottom: 2px;
+  }
+  .tuner-gauge-labels {
+    top: 20px;
+  }
+  .tuner-measurements {
+    margin-top: 3px;
+  }
+  .tuner-poly-area {
+    min-height: 210px;
+  }
+  .tuner-mini-gauge {
+    height: 53px;
+    margin-block: 8px;
   }
 }

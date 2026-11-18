@@ -11,12 +11,13 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
-  ChevronDown,
+  SlidersHorizontal,
   Mic,
   RotateCcw,
   Square,
   Star,
   Volume2,
+  X,
 } from "lucide-react";
 import { tunings } from "./data/tunings";
 import { TunerAudio, playReference } from "./lib/audio";
@@ -89,6 +90,10 @@ export default function TunerView({
   const group = `${tuning.instrument}-${tuning.strings.length}`;
   const available = tunings.filter(
     (item) => `${item.instrument}-${item.strings.length}` === group,
+  );
+  const settingsDialog = useRef<HTMLDialogElement>(null);
+  const [settingsPanel, setSettingsPanel] = useState<"input" | "tuning">(
+    "input",
   );
   const [mode, setMode] = useState<"single" | "poly">("single");
   const [target, setTarget] = useState<number | "auto">("auto");
@@ -332,15 +337,6 @@ export default function TunerView({
   return (
     <div className="tuner-view">
       <div className="tuner-toolbar">
-        <button
-          type="button"
-          className={`button tuner-start ${active || starting ? "secondary" : "primary"}`}
-          onClick={active || starting ? stop : () => void start()}
-          aria-label={active || starting ? "튜너 입력 정지" : "튜너 입력 시작"}
-        >
-          {active || starting ? <Square size={15} /> : <Mic size={16} />}{" "}
-          {starting ? "취소" : active ? "정지" : "시작"}
-        </button>
         <div className="segmented tuner-mode" aria-label="튜닝 모드">
           <button
             type="button"
@@ -354,10 +350,32 @@ export default function TunerView({
             type="button"
             className={mode === "poly" ? "active" : ""}
             aria-pressed={mode === "poly"}
-            title="동시 튜닝 · 실험"
+            title="동시 튜닝"
             onClick={() => setMode("poly")}
           >
-            동시에 <span className="tuner-beta">실험</span>
+            동시에
+          </button>
+        </div>
+        <div className="tuner-actions">
+          <button
+            type="button"
+            className={`button tuner-start ${active || starting ? "secondary" : "primary"}`}
+            onClick={active || starting ? stop : () => void start()}
+            aria-label={
+              active || starting ? "튜너 입력 정지" : "튜너 입력 시작"
+            }
+          >
+            {active || starting ? <Square size={15} /> : <Mic size={16} />}{" "}
+            {starting ? "취소" : active ? "정지" : "시작"}
+          </button>
+          <button
+            type="button"
+            className="icon-button tuner-settings-trigger"
+            title="튜너 설정"
+            aria-label="튜너 설정"
+            onClick={() => settingsDialog.current?.showModal()}
+          >
+            <SlidersHorizontal size={19} />
           </button>
         </div>
       </div>
@@ -584,7 +602,7 @@ export default function TunerView({
                         ? result.held
                           ? "마지막 측정"
                           : `${result.frequency.toFixed(1)} Hz`
-                        : "미검출"}
+                        : "—"}
                     </span>
                     <button
                       type="button"
@@ -604,7 +622,10 @@ export default function TunerView({
       </section>
 
       {mode === "single" && (
-        <div className="tuner-string-picker">
+        <div
+          className="tuner-string-picker"
+          style={{ "--targets": strings.length + 1 } as CSSProperties}
+        >
           <button
             type="button"
             className={target === "auto" ? "selected" : ""}
@@ -631,72 +652,30 @@ export default function TunerView({
         </div>
       )}
 
-      <div className="tuner-input-panel">
-        <div className="tuner-input-fields">
-          <label className="tuner-device-select">
-            입력
-            <select
-              aria-label="오디오 입력 장치"
-              value={deviceId}
-              onChange={(event) => changeInput(event.target.value, channel)}
-            >
-              <option value="">기본 입력</option>
-              {devices
-                .filter(
-                  (device) => device.deviceId && device.deviceId !== "default",
-                )
-                .map((device, index) => (
-                  <option value={device.deviceId} key={device.deviceId}>
-                    {device.label || `오디오 입력 ${index + 1}`}
-                  </option>
-                ))}
-            </select>
-          </label>
-          <label className="tuner-channel-select">
-            채널
-            <select
-              aria-label="입력 채널"
-              value={channel}
-              onChange={(event) =>
-                changeInput(
-                  deviceId,
-                  event.target.value as "mix" | "left" | "right",
-                )
-              }
-            >
-              <option value="left">L · 1</option>
-              <option value="right">R · 2</option>
-              <option value="mix">L + R</option>
-            </select>
-          </label>
+      <div className={`tuner-level-row ${clipping ? "is-clipping" : ""}`}>
+        <Mic size={16} aria-hidden="true" />
+        <div
+          className="tuner-level-meter"
+          role="meter"
+          aria-label="입력 레벨"
+          aria-valuemin={-80}
+          aria-valuemax={0}
+          aria-valuenow={
+            level > 0 ? Math.max(-80, Math.round(20 * Math.log10(level))) : -80
+          }
+        >
+          <i style={{ width: `${meter}%` }} />
+          <b />
         </div>
-        <div className={`tuner-level-row ${clipping ? "is-clipping" : ""}`}>
-          <Mic size={16} aria-hidden="true" />
-          <div
-            className="tuner-level-meter"
-            role="meter"
-            aria-label="입력 레벨"
-            aria-valuemin={-80}
-            aria-valuemax={0}
-            aria-valuenow={
-              level > 0
-                ? Math.max(-80, Math.round(20 * Math.log10(level)))
-                : -80
-            }
-          >
-            <i style={{ width: `${meter}%` }} />
-            <b />
-          </div>
-          <span title={clipping ? "입력 게인을 낮추세요" : "입력 레벨"}>
-            {clipping
-              ? "CLIP"
-              : active
-                ? level > 0
-                  ? `${Math.max(-80, Math.round(20 * Math.log10(level)))} dBFS`
-                  : "−∞ dBFS"
-                : null}
-          </span>
-        </div>
+        <span title={clipping ? "입력 게인을 낮추세요" : "입력 레벨"}>
+          {clipping
+            ? "CLIP"
+            : active
+              ? level > 0
+                ? `${Math.max(-80, Math.round(20 * Math.log10(level)))} dBFS`
+                : "−∞ dBFS"
+              : null}
+        </span>
       </div>
       {error && (
         <div className="tuner-error" role="alert">
@@ -704,12 +683,87 @@ export default function TunerView({
         </div>
       )}
 
-      <details className="tuner-settings">
-        <summary>
-          기준음 · 튜닝
-          <ChevronDown size={16} />
-        </summary>
-        <div className="tuner-settings-content">
+      <dialog
+        ref={settingsDialog}
+        className="tuner-settings"
+        aria-labelledby="tuner-settings-title"
+        onClick={(event) => {
+          if (event.target === event.currentTarget) event.currentTarget.close();
+        }}
+      >
+        <div className="section-heading">
+          <h2 id="tuner-settings-title">튜너 설정</h2>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="튜너 설정 닫기"
+            onClick={() => settingsDialog.current?.close()}
+            autoFocus
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <div className="panel-tabs" role="group" aria-label="설정 분류">
+          <button
+            type="button"
+            aria-pressed={settingsPanel === "input"}
+            onClick={() => setSettingsPanel("input")}
+          >
+            입력
+          </button>
+          <button
+            type="button"
+            aria-pressed={settingsPanel === "tuning"}
+            onClick={() => setSettingsPanel("tuning")}
+          >
+            기준음·튜닝
+          </button>
+        </div>
+        <div hidden={settingsPanel !== "input"}>
+          <div className="tuner-input-fields">
+            <label className="tuner-device-select">
+              입력
+              <select
+                aria-label="오디오 입력 장치"
+                value={deviceId}
+                onChange={(event) => changeInput(event.target.value, channel)}
+              >
+                <option value="">기본 입력</option>
+                {devices
+                  .filter(
+                    (device) =>
+                      device.deviceId && device.deviceId !== "default",
+                  )
+                  .map((device, index) => (
+                    <option value={device.deviceId} key={device.deviceId}>
+                      {device.label || `오디오 입력 ${index + 1}`}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <label className="tuner-channel-select">
+              채널
+              <select
+                aria-label="입력 채널"
+                value={channel}
+                onChange={(event) =>
+                  changeInput(
+                    deviceId,
+                    event.target.value as "mix" | "left" | "right",
+                  )
+                }
+              >
+                <option value="left">L · 1</option>
+                <option value="right">R · 2</option>
+                <option value="mix">L + R</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div
+          hidden={settingsPanel !== "tuning"}
+          className="tuner-settings-content"
+        >
           <div className="tuner-calibration">
             <label htmlFor="tuner-a4">A4</label>
             <div>
@@ -785,7 +839,7 @@ export default function TunerView({
             ))}
           </div>
         </div>
-      </details>
+      </dialog>
     </div>
   );
 }

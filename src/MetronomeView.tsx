@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   Play,
   Square,
@@ -6,9 +6,7 @@ import {
   Plus,
   Hand,
   Volume2,
-  Bookmark,
   Timer,
-  TrendingUp,
   Trash2,
 } from "lucide-react";
 import { tapTempo } from "./lib/metronome";
@@ -34,6 +32,7 @@ export default function MetronomeView({
   savePreset,
   removePreset,
 }: MetronomeProps) {
+  const [panel, setPanel] = useState<"rhythm" | "timer" | "presets">("rhythm");
   const taps = useRef<number[]>([]);
   const presetName = useRef<HTMLInputElement>(null);
   function tap() {
@@ -46,11 +45,6 @@ export default function MetronomeView({
   return (
     <div className="metronome-layout">
       <section className="card metro-main">
-        <div className="section-heading">
-          <span className="pill">
-            {c.beats}/{c.denominator}
-          </span>
-        </div>
         <div className="tempo-control">
           <button
             className="round"
@@ -137,17 +131,33 @@ export default function MetronomeView({
             )}
             {playing ? "정지" : "시작"}
           </button>
+          {playing && (
+            <span className="metro-status">
+              {`${tick?.countIn ? "카운트인" : `${tick?.bar ?? 1}마디`} · ${tick?.bpm ?? c.bpm}`}
+            </span>
+          )}
         </div>
-        {playing && (
-          <div className="metro-status">
-            <span className="status-dot on" />
-            {`${tick?.countIn ? "카운트인" : `${tick?.bar ?? 1} 마디`} · ${tick?.bpm ?? c.bpm} BPM`}
-          </div>
-        )}
       </section>
-      <div className="stack">
-        <section className="card">
-          <h3>리듬 설정</h3>
+      <section className="card metro-settings" aria-label="메트로놈 설정">
+        <div className="panel-tabs" role="group" aria-label="설정 분류">
+          {(
+            [
+              ["rhythm", "리듬"],
+              ["timer", "타이머"],
+              ["presets", "프리셋"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              type="button"
+              key={id}
+              aria-pressed={panel === id}
+              onClick={() => setPanel(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="metro-setting-pane" hidden={panel !== "rhythm"}>
           <div className="form-row">
             <label>
               박자
@@ -183,8 +193,19 @@ export default function MetronomeView({
               </select>
             </label>
           </div>
-          <label>
-            세분박
+          <div className="metro-subdivision">
+            <div>
+              <span>세분박</span>
+              <label className="metro-swing">
+                스윙
+                <input
+                  type="checkbox"
+                  checked={c.swing}
+                  disabled={c.subdivision !== 2}
+                  onChange={(e) => setConfig({ swing: e.target.checked })}
+                />
+              </label>
+            </div>
             <div className="segmented subdivisions">
               {[1, 2, 3, 4].map((s, i) => (
                 <button
@@ -196,22 +217,10 @@ export default function MetronomeView({
                   onClick={() => setConfig({ subdivision: s })}
                 >
                   {["×1", "×2", "×3", "×4"][i]}
-                  <small>{s === 3 ? "셋잇단" : ""}</small>
                 </button>
               ))}
             </div>
-          </label>
-          <label className="toggle-row">
-            <span>
-              스윙 <small>2:1</small>
-            </span>
-            <input
-              type="checkbox"
-              checked={c.swing}
-              disabled={c.subdivision !== 2}
-              onChange={(e) => setConfig({ swing: e.target.checked })}
-            />
-          </label>
+          </div>
           <div className="form-row">
             <label>
               클릭 사운드
@@ -250,11 +259,9 @@ export default function MetronomeView({
             />
             <span>{Math.round(c.volume * 100)}%</span>
           </label>
-        </section>
-        <section className="card">
-          <h3>
-            <TrendingUp size={18} /> 템포 증가
-          </h3>
+        </div>
+        <div className="metro-setting-pane" hidden={panel !== "timer"}>
+          <h3>템포 증가</h3>
           <div className="form-row">
             <label>
               간격
@@ -271,7 +278,7 @@ export default function MetronomeView({
               </select>
             </label>
             <label>
-              BPM
+              증가량
               <select
                 value={c.rampBy}
                 onChange={(e) => setConfig({ rampBy: +e.target.value })}
@@ -298,62 +305,57 @@ export default function MetronomeView({
               ))}
             </select>
           </label>
-        </section>
-      </div>
-      <section className="card full-width">
-        <div className="section-heading">
-          <h3>
-            <Bookmark size={18} /> 프리셋
-          </h3>
         </div>
-        <form
-          className="preset-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const name = presetName.current?.value.trim();
-            if (name) {
-              savePreset(name);
-              presetName.current!.value = "";
-            }
-          }}
-        >
-          <input
-            ref={presetName}
-            maxLength={40}
-            placeholder="프리셋 이름"
-            aria-label="프리셋 이름"
-          />
-          <button
-            className="button secondary"
-            type="submit"
-            aria-label="현재 설정 저장"
-            title="현재 설정 저장"
+        <div className="metro-setting-pane" hidden={panel !== "presets"}>
+          <form
+            className="preset-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const name = presetName.current?.value.trim();
+              if (name) {
+                savePreset(name);
+                presetName.current!.value = "";
+              }
+            }}
           >
-            <Plus size={16} />
-          </button>
-        </form>
-        <div className="preset-list">
-          {presets.length
-            ? presets.map((p, i) => (
-                <div className="preset-item" key={i}>
-                  <button onClick={() => setConfig(p.config)}>
-                    <span>{p.name}</span>
-                    <small>
-                      {p.config.bpm} BPM · {p.config.beats}/
-                      {p.config.denominator}
-                    </small>
-                  </button>
-                  <button
-                    className="icon-button"
-                    onClick={() => removePreset(i)}
-                    aria-label={`${p.name} 삭제`}
-                    title="삭제"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-              ))
-            : null}
+            <input
+              ref={presetName}
+              maxLength={40}
+              placeholder="프리셋 이름"
+              aria-label="프리셋 이름"
+            />
+            <button
+              className="button secondary"
+              type="submit"
+              aria-label="현재 설정 저장"
+              title="현재 설정 저장"
+            >
+              <Plus size={16} />
+            </button>
+          </form>
+          <div className="preset-list">
+            {presets.length
+              ? presets.map((p, i) => (
+                  <div className="preset-item" key={i}>
+                    <button onClick={() => setConfig(p.config)}>
+                      <span>{p.name}</span>
+                      <small>
+                        {p.config.bpm} BPM · {p.config.beats}/
+                        {p.config.denominator}
+                      </small>
+                    </button>
+                    <button
+                      className="icon-button"
+                      onClick={() => removePreset(i)}
+                      aria-label={`${p.name} 삭제`}
+                      title="삭제"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                ))
+              : null}
+          </div>
         </div>
       </section>
     </div>

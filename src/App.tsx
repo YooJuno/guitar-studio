@@ -13,9 +13,7 @@ import {
   Grid3X3,
   Music2,
   Timer,
-  CircleHelp,
   Code2,
-  LogOut,
   Play,
   Square,
   X,
@@ -23,13 +21,13 @@ import {
   Cloud,
   CloudOff,
   LoaderCircle,
-  SlidersHorizontal,
 } from "lucide-react";
 import type { User } from "firebase/auth";
 import { defaultMetronome, Metronome } from "./lib/metronome";
 import type { MetronomeConfig, Tick } from "./lib/metronome";
 import { tunings } from "./data/tunings";
 import { stopNotes } from "./lib/synth";
+import AccountMenu from "./AccountMenu";
 const TunerView = memo(lazy(() => import("./TunerView")));
 const MetronomeView = lazy(() => import("./MetronomeView"));
 const loadAccount = () => import("./lib/firebase");
@@ -197,7 +195,6 @@ export default function App() {
   const [tick, setTick] = useState<Tick | null>(null);
   const [tunerActive, setTunerActive] = useState(false);
   const [metro] = useState(() => new Metronome());
-  const help = useRef<HTMLDialogElement>(null);
   const key = user ? `juno-studio:user:${user.uid}` : "juno-studio:guest";
   const prefsRef = useRef(prefs);
   prefsRef.current = prefs;
@@ -469,13 +466,14 @@ export default function App() {
         e.repeat ||
         e.altKey ||
         e.ctrlKey ||
-        e.metaKey ||
-        help.current?.open
+        e.metaKey
       )
         return;
       const el = e.target as HTMLElement;
       if (
-        ["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A"].includes(el.tagName) ||
+        ["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A", "SUMMARY"].includes(
+          el.tagName,
+        ) ||
         el.isContentEditable
       )
         return;
@@ -569,14 +567,22 @@ export default function App() {
       </aside>
       <div className="main-shell">
         <header className="topbar">
-          <a className="mobile-brand" href="#tuner" aria-label="Juno Studio 홈">
-            <span className="brand-mark">
-              <AudioLines size={19} />
-            </span>
-            <span>
-              juno<span className="brand-light">studio</span>
-            </span>
-          </a>
+          <div className="tool-heading">
+            <h1>{current.title}</h1>
+            {(tab === "chords" || tab === "scales") && (
+              <button
+                className="tuning-chip"
+                onClick={() => navigate("tuner")}
+                title={`튜닝 변경 · ${activeTuning.name}`}
+                aria-label="튜닝 변경"
+              >
+                <Guitar size={16} />
+                <span>
+                  {prefs.customStrings ? "Custom" : activeTuning.name}
+                </span>
+              </button>
+            )}
+          </div>
           <div className="topbar-actions">
             {tunerActive && tab !== "tuner" && (
               <button
@@ -621,40 +627,113 @@ export default function App() {
                 <Check size={16} />
               )}
             </button>
-            <button
-              className="icon-button help-button"
-              title="도움말"
-              aria-label="도움말"
-              onClick={() => help.current?.showModal()}
-            >
-              <CircleHelp size={19} />
-            </button>
-            <span className="header-divider" />
+            {(tab === "chords" || tab === "scales") && (
+              <details
+                className="quick-metro"
+                key={tab}
+                onBlur={(event) => {
+                  if (
+                    event.relatedTarget &&
+                    !event.currentTarget.contains(event.relatedTarget)
+                  )
+                    event.currentTarget.open = false;
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape" && event.currentTarget.open) {
+                    event.currentTarget.open = false;
+                    event.currentTarget.querySelector("summary")?.focus();
+                  }
+                }}
+              >
+                <summary
+                  className={playing ? "quick-metro-playing" : ""}
+                  title="메트로놈"
+                  aria-label="미니 메트로놈"
+                >
+                  <Timer size={19} />
+                </summary>
+                <div className="mini-metronome">
+                  <button
+                    className="mini-metro-label"
+                    onClick={() => navigate("metronome")}
+                    title="메트로놈 열기"
+                  >
+                    <Timer size={17} />
+                  </button>
+                  <button
+                    className="bpm-step"
+                    onClick={() =>
+                      setMetro({ bpm: Math.max(20, prefs.metronome.bpm - 1) })
+                    }
+                    aria-label="BPM 1 낮추기"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    aria-label="메트로놈 BPM"
+                    min="20"
+                    max="300"
+                    value={prefs.metronome.bpm}
+                    onChange={(e) =>
+                      setMetro({
+                        bpm: Math.max(20, Math.min(300, +e.target.value || 20)),
+                      })
+                    }
+                  />
+                  <span>BPM</span>
+                  <button
+                    className="bpm-step"
+                    onClick={() =>
+                      setMetro({ bpm: Math.min(300, prefs.metronome.bpm + 1) })
+                    }
+                    aria-label="BPM 1 높이기"
+                  >
+                    +
+                  </button>
+                  <div className="mini-beats">
+                    {Array.from(
+                      { length: Math.min(12, prefs.metronome.beats) },
+                      (_, i) => (
+                        <span
+                          key={i}
+                          className={playing && tick?.beat === i ? "lit" : ""}
+                        />
+                      ),
+                    )}
+                  </div>
+                  <button
+                    className={`mini-play ${playing ? "playing" : ""}`}
+                    onClick={toggleMetro}
+                    title={
+                      playing
+                        ? "메트로놈 정지 (Space)"
+                        : "메트로놈 시작 (Space)"
+                    }
+                    aria-label={playing ? "메트로놈 정지" : "메트로놈 시작"}
+                  >
+                    {playing ? (
+                      <Square size={13} fill="currentColor" />
+                    ) : (
+                      <Play size={14} fill="currentColor" />
+                    )}
+                  </button>
+                </div>
+              </details>
+            )}
             {!authKnown || loginBusy ? (
               <span className="account-loading">
                 <LoaderCircle className="spin" size={18} />
               </span>
             ) : user ? (
-              <div className="account">
-                <span className="avatar" title={user.email ?? "Google 계정"}>
-                  {(user.displayName ?? user.email ?? "J").slice(0, 1)}
-                </span>
-                <span className="account-name">
-                  {user.displayName?.split(" ")[0] ?? "내 계정"}
-                </span>
-                <button
-                  className="icon-button"
-                  onClick={() =>
-                    void account.current
-                      ?.logout()
-                      .catch((e) => setToast(errorText(e)))
-                  }
-                  title="로그아웃"
-                  aria-label="로그아웃"
-                >
-                  <LogOut size={16} />
-                </button>
-              </div>
+              <AccountMenu
+                user={user}
+                onLogout={() =>
+                  void account.current
+                    ?.logout()
+                    .catch((e) => setToast(errorText(e)))
+                }
+              />
             ) : (
               <button className="google-login" onClick={login}>
                 <svg
@@ -686,22 +765,6 @@ export default function App() {
           </div>
         </header>
         <main id="main-content">
-          <div className="page-heading">
-            <div>
-              <h1>{current.title}</h1>
-            </div>
-            {(tab === "chords" || tab === "scales") && (
-              <button
-                className="tuning-chip"
-                onClick={() => navigate("tuner")}
-                title="튜닝 변경"
-              >
-                <Guitar size={15} />
-                {prefs.customStrings ? "Custom" : activeTuning.name}
-                <SlidersHorizontal size={13} />
-              </button>
-            )}
-          </div>
           {!hydrated && (
             <div className="load-strip">
               <LoaderCircle size={15} className="spin" /> 설정 불러오는 중
@@ -760,109 +823,7 @@ export default function App() {
             </Suspense>
           </div>
         </main>
-        {tab !== "metronome" && tab !== "jazz" && tab !== "tuner" && (
-          <div className="mini-metronome">
-            <button
-              className="mini-metro-label"
-              onClick={() => navigate("metronome")}
-              title="메트로놈 열기"
-            >
-              <Timer size={17} />
-            </button>
-            <button
-              className="bpm-step"
-              onClick={() =>
-                setMetro({ bpm: Math.max(20, prefs.metronome.bpm - 1) })
-              }
-              aria-label="BPM 1 낮추기"
-            >
-              −
-            </button>
-            <input
-              type="number"
-              aria-label="메트로놈 BPM"
-              min="20"
-              max="300"
-              value={prefs.metronome.bpm}
-              onChange={(e) =>
-                setMetro({
-                  bpm: Math.max(20, Math.min(300, +e.target.value || 20)),
-                })
-              }
-            />
-            <span>BPM</span>
-            <button
-              className="bpm-step"
-              onClick={() =>
-                setMetro({ bpm: Math.min(300, prefs.metronome.bpm + 1) })
-              }
-              aria-label="BPM 1 높이기"
-            >
-              +
-            </button>
-            <div className="mini-beats">
-              {Array.from(
-                { length: Math.min(12, prefs.metronome.beats) },
-                (_, i) => (
-                  <span
-                    key={i}
-                    className={playing && tick?.beat === i ? "lit" : ""}
-                  />
-                ),
-              )}
-            </div>
-            <button
-              className={`mini-play ${playing ? "playing" : ""}`}
-              onClick={toggleMetro}
-              title={
-                playing ? "메트로놈 정지 (Space)" : "메트로놈 시작 (Space)"
-              }
-              aria-label={playing ? "메트로놈 정지" : "메트로놈 시작"}
-            >
-              {playing ? (
-                <Square size={13} fill="currentColor" />
-              ) : (
-                <Play size={14} fill="currentColor" />
-              )}
-            </button>
-          </div>
-        )}
       </div>
-      <dialog
-        ref={help}
-        className="help-dialog"
-        onClick={(e) => {
-          if (e.target === help.current) help.current.close();
-        }}
-      >
-        <div className="section-heading">
-          <h2>도움말</h2>
-          <button
-            className="icon-button"
-            onClick={() => help.current?.close()}
-            aria-label="도움말 닫기"
-            autoFocus
-          >
-            <X size={20} />
-          </button>
-        </div>
-        <dl className="help-shortcuts">
-          <div>
-            <dt>
-              <kbd>Space</kbd>
-            </dt>
-            <dd>
-              <Play size={16} /> 재생·정지
-            </dd>
-          </div>
-          <div>
-            <dt>
-              <Timer size={18} /> 박 클릭
-            </dt>
-            <dd>강세 변경</dd>
-          </div>
-        </dl>
-      </dialog>
       {toast && (
         <div className="toast" role="status">
           {toast}

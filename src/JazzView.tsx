@@ -11,7 +11,6 @@ import {
   ChevronDown,
   ExternalLink,
   FileMusic,
-  Info,
   Search,
   Upload,
   X,
@@ -48,9 +47,7 @@ function Notation({ abc, transpose }: { abc: string; transpose: number }) {
       })
       .catch(() => {
         if (!cancelled)
-          setError(
-            "악보를 표시하지 못했습니다. 아래 코드 차트를 이용해 주세요.",
-          );
+          setError("악보를 표시하지 못했습니다. 코드 차트에서 확인해 주세요.");
       });
     return () => {
       cancelled = true;
@@ -76,6 +73,10 @@ export default function JazzView({
   onPlaybackActive,
 }: MusicViewProps) {
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const libraryRef = useRef<HTMLElement>(null);
+  const libraryToggle = useRef<HTMLButtonElement>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [panel, setPanel] = useState<"chart" | "score" | "pdf">("chart");
   const libraryId = useId();
   const [query, setQuery] = useState("");
   const [style, setStyle] = useState("all");
@@ -125,8 +126,35 @@ export default function JazzView({
     },
     [],
   );
+  useEffect(() => {
+    if (!libraryOpen) return;
+    const closeOutside = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !libraryRef.current?.contains(event.target)
+      )
+        setLibraryOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [libraryOpen]);
+  useEffect(() => {
+    if (panel !== "chart" || currentBar === null) return;
+    const scroller = chartRef.current;
+    const active = scroller?.querySelector('[aria-current="step"]');
+    if (!scroller || !active) return;
+    const section = scroller.getBoundingClientRect();
+    const bar = active.getBoundingClientRect();
+    if (bar.top < section.top) scroller.scrollTop += bar.top - section.top - 4;
+    else if (bar.bottom > section.bottom)
+      scroller.scrollTop += bar.bottom - section.bottom + 4;
+  }, [panel, currentBar]);
   function select(standard: Standard) {
     setLibraryOpen(false);
+    if (libraryToggle.current?.getClientRects().length)
+      libraryToggle.current.focus();
+    setPanel("chart");
+    if (chartRef.current) chartRef.current.scrollTop = 0;
     setSelectedId(standard.id);
     setTranspose(0);
     setCurrentBar(null);
@@ -172,6 +200,13 @@ export default function JazzView({
   return (
     <div className="music-jazz-layout">
       <section
+        ref={libraryRef}
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && libraryOpen) {
+            setLibraryOpen(false);
+            libraryToggle.current?.focus();
+          }
+        }}
         className={`card music-library ${libraryOpen ? "library-open" : ""}`}
       >
         <div className="section-heading music-library-heading">
@@ -180,11 +215,12 @@ export default function JazzView({
         <div className="music-library-toolbar">
           <button
             type="button"
+            ref={libraryToggle}
             className="music-library-toggle"
             aria-expanded={libraryOpen}
             aria-controls={libraryId}
             aria-label={`레퍼토리 변경 · ${selected.title}`}
-            title="곡 선택"
+            title={`곡 선택 · ${selected.composer}`}
             onClick={() => setLibraryOpen((open) => !open)}
           >
             <FileMusic size={18} />
@@ -273,43 +309,75 @@ export default function JazzView({
           )}
         </div>
       </section>
-      <div className="stack music-score-column">
-        <section className="card music-score-card">
-          <div className="section-heading music-score-heading">
-            <h2 className="music-song-title">{selected.title}</h2>
-            <FavoriteButton
-              saved={favorites.includes(`jazz:${selected.id}`)}
-              onClick={() => onFavorite(`jazz:${selected.id}`)}
-              label={selected.title}
-            />
-          </div>
-          <JazzPractice
-            key={selected.id}
-            standard={selected}
-            transpose={transpose}
-            onTranspose={setTranspose}
-            onPosition={setCurrentBar}
-            onActiveChange={onPlaybackActive}
-            onTempo={onTempo}
+      <section className="card music-score-card">
+        <div className="section-heading music-score-heading">
+          <h2
+            className="music-song-title"
+            title={`${selected.composer} · ${selected.year}`}
+          >
+            {selected.title}
+          </h2>
+          <FavoriteButton
+            saved={favorites.includes(`jazz:${selected.id}`)}
+            onClick={() => onFavorite(`jazz:${selected.id}`)}
+            label={selected.title}
           />
-          {selected.abc && (
-            <Notation abc={selected.abc} transpose={transpose} />
-          )}
-          <div className="section-heading music-chart-heading">
-            <h3>코드 차트</h3>
-            {!selected.abc && (
-              <a
-                className="button secondary music-score-link"
-                href={selected.scoreUrl}
-                target="_blank"
-                rel="noreferrer"
-                title={selected.scoreLabel}
-                aria-label={`${selected.title} 정식 악보 열기`}
+        </div>
+        <JazzPractice
+          key={selected.id}
+          standard={selected}
+          transpose={transpose}
+          onTranspose={setTranspose}
+          onPosition={setCurrentBar}
+          onActiveChange={onPlaybackActive}
+          onTempo={onTempo}
+        />
+        <div className="music-score-toolbar">
+          <div className="panel-tabs" role="group" aria-label="악보 종류">
+            <button
+              type="button"
+              aria-pressed={panel === "chart"}
+              onClick={() => setPanel("chart")}
+            >
+              코드 차트
+            </button>
+            {selected.abc && (
+              <button
+                type="button"
+                aria-pressed={panel === "score"}
+                onClick={() => setPanel("score")}
               >
-                <FileMusic size={18} /> 악보 <ExternalLink size={15} />
-              </a>
+                오선 악보
+              </button>
             )}
+            <button
+              type="button"
+              aria-pressed={panel === "pdf"}
+              onClick={() => setPanel("pdf")}
+            >
+              내 PDF
+            </button>
           </div>
+          {!selected.abc && (
+            <a
+              className="button secondary music-score-link"
+              href={selected.scoreUrl}
+              target="_blank"
+              rel="noreferrer"
+              title={selected.scoreLabel}
+              aria-label={`${selected.title} 정식 악보 열기`}
+            >
+              <FileMusic size={16} /> 악보 <ExternalLink size={14} />
+            </a>
+          )}
+        </div>
+        <div
+          className="music-score-pane"
+          hidden={panel !== "chart"}
+          ref={chartRef}
+          tabIndex={0}
+          aria-label="코드 차트"
+        >
           <div className="music-charts">
             {chart.map((section, sectionIndex) => (
               <div className="music-chart-section" key={sectionIndex}>
@@ -342,86 +410,85 @@ export default function JazzView({
               </div>
             ))}
           </div>
-          <details className="music-help music-score-help">
-            <summary title="곡·악보 정보" aria-label="곡·악보 정보">
-              <Info size={19} />
-            </summary>
-            <p>
-              {selected.composer} · {selected.year}
-            </p>
+        </div>
+        {panel === "score" && selected.abc && (
+          <div className="music-score-pane" tabIndex={0} aria-label="오선 악보">
+            <Notation abc={selected.abc} transpose={transpose} />
             <a
-              className="music-source-link small"
+              className="music-source-link"
               href={selected.scoreUrl}
               target="_blank"
               rel="noreferrer"
             >
-              {selected.scoreLabel} <ExternalLink size={12} />
+              {selected.scoreLabel} <ExternalLink size={14} />
             </a>
-          </details>
-          {error && (
-            <p className="music-error" role="alert">
-              {error}
-            </p>
-          )}
-        </section>
-        <section className="card music-pdf-card">
-          <div className="section-heading">
-            <div>
-              <h3>내 악보 · PDF</h3>
-            </div>
-            <button
-              className="button secondary"
-              onClick={() => fileInput.current?.click()}
-            >
-              <Upload size={15} /> PDF 선택
-            </button>
           </div>
-          <input
-            className="music-file-input"
-            ref={fileInput}
-            type="file"
-            accept="application/pdf,.pdf"
-            aria-label="내 PDF 악보 선택"
-            onChange={(e) => {
-              void upload(e.target.files?.[0]);
-              e.target.value = "";
-            }}
-          />
-          {pdf ? (
-            <>
-              <div className="music-pdf-name">
-                <FileMusic size={16} />
-                <span>{pdf.name}</span>
-                <a
-                  href={pdf.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="내 PDF 새 창에서 열기"
-                  title="새 창에서 열기"
-                >
-                  <ExternalLink size={16} />
-                </a>
-                <button
-                  className="icon-button"
-                  aria-label="내 PDF 닫기"
-                  title="닫기"
-                  onClick={() => {
-                    uploadSequence.current++;
-                    setPdf(null);
-                  }}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <iframe
-                className="music-pdf-preview"
-                src={pdf.url}
-                title={`${pdf.name} 악보 미리보기`}
-              />
-            </>
-          ) : null}
-        </section>
-      </div>
+        )}
+        {panel === "pdf" && (
+          <section
+            className="music-score-pane music-pdf-card"
+            aria-label="내 PDF"
+          >
+            <div className="section-heading">
+              <button
+                className="button secondary"
+                onClick={() => fileInput.current?.click()}
+              >
+                <Upload size={15} /> PDF 선택
+              </button>
+            </div>
+            <input
+              className="music-file-input"
+              ref={fileInput}
+              type="file"
+              accept="application/pdf,.pdf"
+              aria-label="내 PDF 악보 선택"
+              onChange={(e) => {
+                void upload(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+            {pdf ? (
+              <>
+                <div className="music-pdf-name">
+                  <FileMusic size={16} />
+                  <span>{pdf.name}</span>
+                  <a
+                    href={pdf.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="내 PDF 새 창에서 열기"
+                    title="새 창에서 열기"
+                  >
+                    <ExternalLink size={16} />
+                  </a>
+                  <button
+                    className="icon-button"
+                    aria-label="내 PDF 닫기"
+                    title="닫기"
+                    onClick={() => {
+                      uploadSequence.current++;
+                      setPdf(null);
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <iframe
+                  className="music-pdf-preview"
+                  src={pdf.url}
+                  title={`${pdf.name} 악보 미리보기`}
+                />
+              </>
+            ) : null}
+          </section>
+        )}
+        {error && (
+          <p className="music-error" role="alert">
+            {error}
+          </p>
+        )}
+      </section>
     </div>
   );
 }
