@@ -1,0 +1,887 @@
+{
+  "version": 1,
+  "sources": {
+    "piano": {
+      "repo": "smpldsnds/sfzinstruments-splendid-grand-piano",
+      "commit": "009793ebf849aee57f9a213aeaf8f2d1e2178f4f"
+    },
+    "bass": {
+      "repo": "smpldsnds/sfzinstruments-dsmolken-double-bass",
+      "commit": "0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c"
+    },
+    "drums": {
+      "repo": "smpldsnds/sonic-pi-samples",
+      "commit": "b39c72bd79024e6eec58c4f55c333ede79b700b6"
+    }
+  },
+  "samples": [
+    {
+      "id": "piano-soft-48",
+      "instrument": "piano",
+      "root": 48,
+      "layer": "soft",
+      "variant": 0,
+      "sourcePath": "samples/PP C2"
+    },
+    {
+      "id": "piano-medium-48",
+      "instrument": "piano",
+      "root": 48,
+      "layer": "medium",
+      "variant": 0,
+      "sourcePath": "samples/Mp C2"
+    },
+    {
+      "id": "piano-soft-52",
+      "instrument": "piano",
+      "root": 52,
+      "layer": "soft",
+      "variant": 0,
+      "sourcePath": "samples/PP E2"
+    },
+    {
+      "id": "piano-medium-52",
+      "instrument": "piano",
+      "root": 52,
+      "layer": "medium",
+      "variant": 0,
+      "sourcePath": "samples/Mp E2"
+    },
+    {
+      "id": "piano-soft-55",
+      "instrument": "piano",
+      "root": 55,
+      "layer": "soft",
+      "variant": 0,
+      "sourcePath": "samples/PP G2"
+    },
+    {
+      "id": "piano-medium-55",
+      "instrument": "piano",
+      "root": 55,
+      "layer": "medium",
+      "variant": 0,
+      "sourcePath": "samples/Mp G2"
+    },
+    {
+      "id": "piano-soft-60",
+      "instrument": "piano",
+      "root": 60,
+      "layer": "soft",
+      "variant": 0,
+      "sourcePath": "samples/PP C3"
+    },
+    {
+      "id": "piano-medium-60",
+      "instrument": "piano",
+      "root": 60,
+      "layer": "medium",
+      "variant": 0,
+      "sourcePath": "samples/Mp C3"
+    },
+    {
+      "id": "piano-soft-64",
+      "instrument": "piano",
+      "root": 64,
+      "layer": "soft",
+      "variant": 0,
+      "sourcePath": "samples/PP E3"
+    },
+    {
+      "id": "piano-medium-64",
+      "instrument": "piano",
+      "root": 64,
+      "layer": "medium",
+      "variant": 0,
+      "sourcePath": "samples/Mp E3"
+    },
+    {
+      "id": "piano-soft-67",
+      "instrument": "piano",
+      "root": 67,
+      "layer": "soft",
+      "variant": 0,
+      "sourcePath": "samples/PP G3"
+    },
+    {
+      "id": "piano-medium-67",
+      "instrument": "piano",
+      "root": 67,
+      "layer": "medium",
+      "variant": 0,
+      "sourcePath": "samples/Mp G3"
+    },
+    {
+      "id": "piano-soft-72",
+      "instrument": "piano",
+      "root": 72,
+      "layer": "soft",
+      "variant": 0,
+      "sourcePath": "samples/PP C4"
+    },
+    {
+      "id": "piano-medium-72",
+      "instrument": "piano",
+      "root": 72,
+      "layer": "medium",
+      "variant": 0,
+      "sourcePath": "samples/Mp C4"
+    },
+    {
+      "id": "piano-soft-76",
+      "instrument": "piano",
+      "root": 76,
+      "layer": "soft",
+      "variant": 0,
+      "sourcePath": "samples/PP E4"
+    },
+    {
+      "id": "piano-medium-76",
+      "instrument": "piano",
+      "root": 76,
+      "layer": "medium",
+      "variant": 0,
+      "sourcePath": "samples/Mp E4"
+    },
+    {
+      "id": "piano-soft-79",
+      "instrument": "piano",
+      "root": 79,
+      "layer": "soft",
+      "variant": 0,
+      "sourcePath": "samples/PP G4"
+    },
+    {
+      "id": "piano-medium-79",
+      "instrument": "piano",
+      "root": 79,
+      "layer": "medium",
+      "variant": 0,
+      "sourcePath": "samples/Mp G4"
+    },
+    {
+      "id": "piano-soft-83",
+      "instrument": "piano",
+      "root": 83,
+      "layer": "soft",
+      "variant": 0,
+      "sourcePath": "samples/PP B4"
+    },
+    {
+      "id": "piano-medium-83",
+      "instrument": "piano",
+      "root": 83,
+      "layer": "medium",
+      "variant": 0,
+      "sourcePath": "samples/Mp B4"
+    },
+    {
+      "id": "bass-24-0",
+      "instrument": "bass",
+      "root": 24,
+      "variant": 0,
+      "sourcePath": "pizz/pizz_c1_ma"
+    },
+    {
+      "id": "bass-24-1",
+      "instrument": "bass",
+      "root": 24,
+      "variant": 1,
+      "sourcePath": "pizz/pizz_c1_mb"
+    },
+    {
+      "id": "bass-31-0",
+      "instrument": "bass",
+      "root": 31,
+      "variant": 0,
+      "sourcePath": "pizz/pizz_g1_ma"
+    },
+    {
+      "id": "bass-31-1",
+      "instrument": "bass",
+      "root": 31,
+      "variant": 1,
+      "sourcePath": "pizz/pizz_g1_mb"
+    },
+    {
+      "id": "bass-34-0",
+      "instrument": "bass",
+      "root": 34,
+      "variant": 0,
+      "sourcePath": "pizz/pizz_bb1_ma"
+    },
+    {
+      "id": "bass-34-1",
+      "instrument": "bass",
+      "root": 34,
+      "variant": 1,
+      "sourcePath": "pizz/pizz_bb1_mb"
+    },
+    {
+      "id": "bass-38-0",
+      "instrument": "bass",
+      "root": 38,
+      "variant": 0,
+      "sourcePath": "pizz/pizz_d2_ma"
+    },
+    {
+      "id": "bass-38-1",
+      "instrument": "bass",
+      "root": 38,
+      "variant": 1,
+      "sourcePath": "pizz/pizz_d2_mb"
+    },
+    {
+      "id": "bass-45-0",
+      "instrument": "bass",
+      "root": 45,
+      "variant": 0,
+      "sourcePath": "pizz/pizz_a2_ma"
+    },
+    {
+      "id": "bass-45-1",
+      "instrument": "bass",
+      "root": 45,
+      "variant": 1,
+      "sourcePath": "pizz/pizz_a2_mb"
+    },
+    {
+      "id": "bass-48-0",
+      "instrument": "bass",
+      "root": 48,
+      "variant": 0,
+      "sourcePath": "pizz/pizz_c3_ma"
+    },
+    {
+      "id": "bass-48-1",
+      "instrument": "bass",
+      "root": 48,
+      "variant": 1,
+      "sourcePath": "pizz/pizz_c3_mb"
+    },
+    {
+      "id": "bass-57-0",
+      "instrument": "bass",
+      "root": 57,
+      "variant": 0,
+      "sourcePath": "pizz/pizz_a3_ma"
+    },
+    {
+      "id": "bass-57-1",
+      "instrument": "bass",
+      "root": 57,
+      "variant": 1,
+      "sourcePath": "pizz/pizz_a3_mb"
+    },
+    {
+      "id": "ride-soft",
+      "instrument": "drums",
+      "root": 60,
+      "kind": "ride",
+      "variant": 0,
+      "sourcePath": "samples/drum_cymbal_soft"
+    },
+    {
+      "id": "ride-hard",
+      "instrument": "drums",
+      "root": 60,
+      "kind": "ride",
+      "variant": 1,
+      "sourcePath": "samples/drum_cymbal_hard"
+    },
+    {
+      "id": "hat-closed",
+      "instrument": "drums",
+      "root": 60,
+      "kind": "hat",
+      "variant": 0,
+      "sourcePath": "samples/drum_cymbal_closed"
+    },
+    {
+      "id": "hat-pedal",
+      "instrument": "drums",
+      "root": 60,
+      "kind": "hat",
+      "variant": 1,
+      "sourcePath": "samples/drum_cymbal_pedal"
+    },
+    {
+      "id": "kick-soft",
+      "instrument": "drums",
+      "root": 60,
+      "kind": "kick",
+      "variant": 0,
+      "sourcePath": "samples/drum_bass_soft"
+    },
+    {
+      "id": "snare-soft",
+      "instrument": "drums",
+      "root": 60,
+      "kind": "snare",
+      "variant": 0,
+      "sourcePath": "samples/drum_snare_soft"
+    }
+  ],
+  "files": [
+    {
+      "id": "bass-24-0",
+      "format": "m4a",
+      "bytes": 84801,
+      "sha256": "9832bed025be8bddcaa1b986a4fa3a5a3e61ff2bf60b32a422bd8e25d37e5eab",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_c1_ma.m4a"
+    },
+    {
+      "id": "bass-24-0",
+      "format": "ogg",
+      "bytes": 81876,
+      "sha256": "a7c89244900c4b9a84a82fb73ddb17c21027b7765d083dd52826232ff5469116",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_c1_ma.ogg"
+    },
+    {
+      "id": "bass-24-1",
+      "format": "m4a",
+      "bytes": 81257,
+      "sha256": "2fd0595b716abe12a4b37e2f67ca897243b4d481b265cb2f9bd14cc1b227f430",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_c1_mb.m4a"
+    },
+    {
+      "id": "bass-24-1",
+      "format": "ogg",
+      "bytes": 77398,
+      "sha256": "4b3cb2cef21cb8896ab82574ba4bd986e095890503bc768626e99c901d91d53d",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_c1_mb.ogg"
+    },
+    {
+      "id": "bass-31-0",
+      "format": "m4a",
+      "bytes": 81625,
+      "sha256": "2366956c4107c2a40453154c7f938413b23a64704957b33f82d6ed400c898003",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_g1_ma.m4a"
+    },
+    {
+      "id": "bass-31-0",
+      "format": "ogg",
+      "bytes": 76662,
+      "sha256": "cf11af835ff593f1cf29c9d757a6a5a37ab6ef06f2f8cbb8d9e5c9ac1eb74e46",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_g1_ma.ogg"
+    },
+    {
+      "id": "bass-31-1",
+      "format": "m4a",
+      "bytes": 63830,
+      "sha256": "74ad668aed715301ef98aca8f8f9bb865cd4d0bbaf381fb4fb6fc25d086ea4b7",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_g1_mb.m4a"
+    },
+    {
+      "id": "bass-31-1",
+      "format": "ogg",
+      "bytes": 57368,
+      "sha256": "8f78f91c3f3d8f1d6c7eca9e88feda7d16b6c2752394df2133201b76017db967",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_g1_mb.ogg"
+    },
+    {
+      "id": "bass-34-0",
+      "format": "m4a",
+      "bytes": 23789,
+      "sha256": "1f036077049f9a2f0b8904e003fb2f17867476cc22cd11e03a271499b95589fb",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_bb1_ma.m4a"
+    },
+    {
+      "id": "bass-34-0",
+      "format": "ogg",
+      "bytes": 20654,
+      "sha256": "de34452181f1ea909b63af8815bc7b369d562bddbea4022ca0642ca9ae336dfe",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_bb1_ma.ogg"
+    },
+    {
+      "id": "bass-34-1",
+      "format": "m4a",
+      "bytes": 24639,
+      "sha256": "3c220f112c07d6de8f59c4932c843dacad297e3f389fe13c6c59072333943d4b",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_bb1_mb.m4a"
+    },
+    {
+      "id": "bass-34-1",
+      "format": "ogg",
+      "bytes": 21515,
+      "sha256": "db124c83aeed3b6e2f29bf4a514cfe26403f7c7d8e1425a8bc1aac3a1d647257",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_bb1_mb.ogg"
+    },
+    {
+      "id": "bass-38-0",
+      "format": "m4a",
+      "bytes": 97665,
+      "sha256": "387d1baefed3c34293d14ec314daf8f1a834b1c2ea9997454abedece16c2db29",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_d2_ma.m4a"
+    },
+    {
+      "id": "bass-38-0",
+      "format": "ogg",
+      "bytes": 93612,
+      "sha256": "2049c24dfea5a2b091cbc3eac91f60c4206ba9d5fcf40a53248700a5c94f1960",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_d2_ma.ogg"
+    },
+    {
+      "id": "bass-38-1",
+      "format": "m4a",
+      "bytes": 87481,
+      "sha256": "e71a50115255b435fab6464d0d49677e4e455d243826aa3957765ea38b069ec2",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_d2_mb.m4a"
+    },
+    {
+      "id": "bass-38-1",
+      "format": "ogg",
+      "bytes": 83450,
+      "sha256": "c1a988fbcd4d2fc137a2d26a11e4b29301f69577208412bf0eb33a6d1c7c8935",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_d2_mb.ogg"
+    },
+    {
+      "id": "bass-45-0",
+      "format": "m4a",
+      "bytes": 56646,
+      "sha256": "5c4abfc471ef1145b23d2521c3a2a006906907ce8fc889487c13b8ccc1579add",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_a2_ma.m4a"
+    },
+    {
+      "id": "bass-45-0",
+      "format": "ogg",
+      "bytes": 50364,
+      "sha256": "da3af7a410b530ec06888164be95041fa031af4d120d5a821526b9d60a21095a",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_a2_ma.ogg"
+    },
+    {
+      "id": "bass-45-1",
+      "format": "m4a",
+      "bytes": 54415,
+      "sha256": "9b016de21308f2ac0cb595611c58ba5f0a5a41fb7ff3aaea150c2591b716fb06",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_a2_mb.m4a"
+    },
+    {
+      "id": "bass-45-1",
+      "format": "ogg",
+      "bytes": 48139,
+      "sha256": "fdc3ad6f8475a28baaac8369d05bb8160ab662275604def75280bda9cda08ff0",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_a2_mb.ogg"
+    },
+    {
+      "id": "bass-48-0",
+      "format": "m4a",
+      "bytes": 40737,
+      "sha256": "f03bf58771d44674f63403c6a13f0608c037f0e6ba3ba2c33390a9dac9506f79",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_c3_ma.m4a"
+    },
+    {
+      "id": "bass-48-0",
+      "format": "ogg",
+      "bytes": 36902,
+      "sha256": "400734a10b315ca61052084ad5a7176de35c7ab53718b8665459be136a40bbfe",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_c3_ma.ogg"
+    },
+    {
+      "id": "bass-48-1",
+      "format": "m4a",
+      "bytes": 42923,
+      "sha256": "219a264dfe27aa5589b0833e95b0d07282f23bd9465bed13b3239cfd70c22406",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_c3_mb.m4a"
+    },
+    {
+      "id": "bass-48-1",
+      "format": "ogg",
+      "bytes": 38981,
+      "sha256": "c64efcd34515598934309e15c9f46eadc704ec45eec875fdfe0aca991837e9f5",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_c3_mb.ogg"
+    },
+    {
+      "id": "bass-57-0",
+      "format": "m4a",
+      "bytes": 16812,
+      "sha256": "0f284ce0a4915b098c5879b297d0bf9e449b4e1c9d0a59a8f49dd9445d1e5e50",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_a3_ma.m4a"
+    },
+    {
+      "id": "bass-57-0",
+      "format": "ogg",
+      "bytes": 14593,
+      "sha256": "a7b1d2a7d12c744e2da26235656bc0f54b192918a2748f9615733818bcd03528",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_a3_ma.ogg"
+    },
+    {
+      "id": "bass-57-1",
+      "format": "m4a",
+      "bytes": 17086,
+      "sha256": "d1796448234e2827af368f5575a6675b262a2ec9dc8506ddecb5ab09d9407d7c",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_a3_mb.m4a"
+    },
+    {
+      "id": "bass-57-1",
+      "format": "ogg",
+      "bytes": 14643,
+      "sha256": "78ad93ad9065179b2a979ab3a8b5db7fb5737c92afa25e4ef3e98d71c0dd11f5",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-dsmolken-double-bass/0d093e8baf1ca8ce6ae0c7d250a0465f2c70774c/pizz/pizz_a3_mb.ogg"
+    },
+    {
+      "id": "hat-closed",
+      "format": "m4a",
+      "bytes": 3005,
+      "sha256": "f9f5241e0fa33469b47cf7d2e0bbf4e18e6557689cdebf56179720c5331bc15c",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sonic-pi-samples/b39c72bd79024e6eec58c4f55c333ede79b700b6/samples/drum_cymbal_closed.m4a"
+    },
+    {
+      "id": "hat-closed",
+      "format": "ogg",
+      "bytes": 1980,
+      "sha256": "fbf8fc7728a949af46fd721b422cb6891c3077b1e568a61916e4ef3213c100a2",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sonic-pi-samples/b39c72bd79024e6eec58c4f55c333ede79b700b6/samples/drum_cymbal_closed.ogg"
+    },
+    {
+      "id": "hat-pedal",
+      "format": "m4a",
+      "bytes": 3594,
+      "sha256": "ce0eb1976aa4285df27db279286c7896568143e81a62590ebc1c8602e259aded",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sonic-pi-samples/b39c72bd79024e6eec58c4f55c333ede79b700b6/samples/drum_cymbal_pedal.m4a"
+    },
+    {
+      "id": "hat-pedal",
+      "format": "ogg",
+      "bytes": 2297,
+      "sha256": "6d9f037246200c063a9522eb3428d61f9f29dad58eb44179f2416a1efbac874c",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sonic-pi-samples/b39c72bd79024e6eec58c4f55c333ede79b700b6/samples/drum_cymbal_pedal.ogg"
+    },
+    {
+      "id": "kick-soft",
+      "format": "m4a",
+      "bytes": 6237,
+      "sha256": "530118acd596465367d0e76414a74a9d03b27ce693155e68ab0bce70ccdce2ba",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sonic-pi-samples/b39c72bd79024e6eec58c4f55c333ede79b700b6/samples/drum_bass_soft.m4a"
+    },
+    {
+      "id": "kick-soft",
+      "format": "ogg",
+      "bytes": 3851,
+      "sha256": "aea3669532e3af38cc8a816b7a48e1ca708e95047cf02df8412d41c4c71a7490",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sonic-pi-samples/b39c72bd79024e6eec58c4f55c333ede79b700b6/samples/drum_bass_soft.ogg"
+    },
+    {
+      "id": "piano-medium-48",
+      "format": "m4a",
+      "bytes": 148633,
+      "sha256": "b768d12e83424a8c322ebe93d03ae28b2a7b2baffcb6fb4f7106587a1d954f52",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20C2.m4a"
+    },
+    {
+      "id": "piano-medium-48",
+      "format": "ogg",
+      "bytes": 129698,
+      "sha256": "c4cc737476d68792fe90abbd92e777f8b00a1e8a5f366717910591afc66751f3",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20C2.ogg"
+    },
+    {
+      "id": "piano-medium-52",
+      "format": "m4a",
+      "bytes": 151294,
+      "sha256": "8bbff570781e9e2098f81959f6a815bc50ac97af92e6911b65d718e11eca19fe",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20E2.m4a"
+    },
+    {
+      "id": "piano-medium-52",
+      "format": "ogg",
+      "bytes": 136565,
+      "sha256": "4c61d2ec3d75a8c0ba793e5e94820368112dba64cb5ab03ab4bd9fad139c911c",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20E2.ogg"
+    },
+    {
+      "id": "piano-medium-55",
+      "format": "m4a",
+      "bytes": 155169,
+      "sha256": "070b017ae471eab35865abe754dd19df15966260ca26456acfa7fbe2682104a8",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20G2.m4a"
+    },
+    {
+      "id": "piano-medium-55",
+      "format": "ogg",
+      "bytes": 138034,
+      "sha256": "f5e45ec0098cd95ac4a96e812ad499a53b506d3e780bbb93ff474ef70227b088",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20G2.ogg"
+    },
+    {
+      "id": "piano-medium-60",
+      "format": "m4a",
+      "bytes": 130734,
+      "sha256": "2d45d6a09cb4cf57cf040264beff9a926c08e3fe2516671d06b1d185b9d91cbd",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20C3.m4a"
+    },
+    {
+      "id": "piano-medium-60",
+      "format": "ogg",
+      "bytes": 119368,
+      "sha256": "d41eb710e35cbd73a89c67425057ad757a9634f04930e0c95b8c38a3be933614",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20C3.ogg"
+    },
+    {
+      "id": "piano-medium-64",
+      "format": "m4a",
+      "bytes": 123105,
+      "sha256": "a820f38506bda8a1169e23400d27192d4e98bc3fd3ee9bd8e398153b29cfcf03",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20E3.m4a"
+    },
+    {
+      "id": "piano-medium-64",
+      "format": "ogg",
+      "bytes": 113124,
+      "sha256": "6b3d250c7800379054a74091102759dcc67f8fbb1ab33e81413e1fec23c57f9f",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20E3.ogg"
+    },
+    {
+      "id": "piano-medium-67",
+      "format": "m4a",
+      "bytes": 97582,
+      "sha256": "2fd5bb0aed0662240d46955284cabbf6e2235e24ad7d55bb517af31dbc92e2f5",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20G3.m4a"
+    },
+    {
+      "id": "piano-medium-67",
+      "format": "ogg",
+      "bytes": 90321,
+      "sha256": "172f3e1201cea4e596d240ab15782f8ec9d287db553d7d8bdfd9d22c6d0ef2d2",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20G3.ogg"
+    },
+    {
+      "id": "piano-medium-72",
+      "format": "m4a",
+      "bytes": 64165,
+      "sha256": "ecc288a15b0f36e2cf6c52c5a25dab56768d5d1028f9648d004b209ccbb2aaf8",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20C4.m4a"
+    },
+    {
+      "id": "piano-medium-72",
+      "format": "ogg",
+      "bytes": 59770,
+      "sha256": "1d5b7db31072017b44354742b7f2d98f6ed4f05d85764cb953f7a64a82a46e28",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20C4.ogg"
+    },
+    {
+      "id": "piano-medium-76",
+      "format": "m4a",
+      "bytes": 97280,
+      "sha256": "c01c8fc81d6934e637bc83b7fe485e5d5765616c588162126ccdb1fe34b73ec6",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20E4.m4a"
+    },
+    {
+      "id": "piano-medium-76",
+      "format": "ogg",
+      "bytes": 82639,
+      "sha256": "a4af9a976d7ed64ac250c5feb1179d79657514b1f6553e4d0888c3e260d95a08",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20E4.ogg"
+    },
+    {
+      "id": "piano-medium-79",
+      "format": "m4a",
+      "bytes": 78856,
+      "sha256": "15f25e6f4d034325ce6092ea861cd19d7ccb7fc733814bc850c1571e610aa796",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20G4.m4a"
+    },
+    {
+      "id": "piano-medium-79",
+      "format": "ogg",
+      "bytes": 67450,
+      "sha256": "a69c68591d86f57b8b6dd856f2114fda6093159d541a2c45b62e9a67337717d9",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20G4.ogg"
+    },
+    {
+      "id": "piano-medium-83",
+      "format": "m4a",
+      "bytes": 80913,
+      "sha256": "2b257199db196fb3cd887e3482803bbd9ae8ba582047bff37bdbff4c7045b74e",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20B4.m4a"
+    },
+    {
+      "id": "piano-medium-83",
+      "format": "ogg",
+      "bytes": 75987,
+      "sha256": "d13fd45e5c4714aa0b543a25248f3c056606f8d8fc8ad1122d6bbb4a7ea79f48",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/Mp%20B4.ogg"
+    },
+    {
+      "id": "piano-soft-48",
+      "format": "m4a",
+      "bytes": 120494,
+      "sha256": "4e087e9bc304c80ef37df89e0846412fb8aa99c3271d4897b00eabbf689e4c42",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20C2.m4a"
+    },
+    {
+      "id": "piano-soft-48",
+      "format": "ogg",
+      "bytes": 106698,
+      "sha256": "20566353db60a9b03b05cb2c1f7d32ba7ab723c92b4623e856907f3d0923e6a7",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20C2.ogg"
+    },
+    {
+      "id": "piano-soft-52",
+      "format": "m4a",
+      "bytes": 98945,
+      "sha256": "14c9151e70284bdd1122f8126667f6ab1638a8a00eb8e4bb654ec74e014e1fd3",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20E2.m4a"
+    },
+    {
+      "id": "piano-soft-52",
+      "format": "ogg",
+      "bytes": 88277,
+      "sha256": "d095e185d82e26f0337f83adbda8b381dd7b9649aa6bc88d42b61aa93139c149",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20E2.ogg"
+    },
+    {
+      "id": "piano-soft-55",
+      "format": "m4a",
+      "bytes": 111764,
+      "sha256": "4fe63ca532b01458a6ad938bfd468221a7368735440f78cab5a1283640b45c12",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20G2.m4a"
+    },
+    {
+      "id": "piano-soft-55",
+      "format": "ogg",
+      "bytes": 99887,
+      "sha256": "6c024e5159fd106e0a93df9e2218a6c82f9e7170214355cad8dc4e4ae879f1e9",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20G2.ogg"
+    },
+    {
+      "id": "piano-soft-60",
+      "format": "m4a",
+      "bytes": 83229,
+      "sha256": "78bb4ff62019ecd3f490af26d5d4ac71eeaa4f673ea848f7d715ec6698b1cc29",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20C3.m4a"
+    },
+    {
+      "id": "piano-soft-60",
+      "format": "ogg",
+      "bytes": 74496,
+      "sha256": "4a78d9486794b641e16ae7750069f1e665155e0727f62a8993711696e558d1fb",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20C3.ogg"
+    },
+    {
+      "id": "piano-soft-64",
+      "format": "m4a",
+      "bytes": 92267,
+      "sha256": "3eaf109443be68be4e57941dee18ab343f01dc3b61fd865a0419e5fb0881f15d",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20E3.m4a"
+    },
+    {
+      "id": "piano-soft-64",
+      "format": "ogg",
+      "bytes": 83672,
+      "sha256": "30d396ecd44891bb9e6245f5f9f8df5af23816cf5347a77fe42cb6a9fc45a896",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20E3.ogg"
+    },
+    {
+      "id": "piano-soft-67",
+      "format": "m4a",
+      "bytes": 88792,
+      "sha256": "62a46f709c8e0505d5c62a7c09b9260d10071eb2c550379fc31125e3aefc274a",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20G3.m4a"
+    },
+    {
+      "id": "piano-soft-67",
+      "format": "ogg",
+      "bytes": 81741,
+      "sha256": "af9054f38f18637a714fc4a65db881ab9552b0c1f662f36f6c03c1e03b170cfe",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20G3.ogg"
+    },
+    {
+      "id": "piano-soft-72",
+      "format": "m4a",
+      "bytes": 68116,
+      "sha256": "eda43f897e51e6ca6ac642faa319abbb76dec0921f6a730cb65e1ee8f3b7e27a",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20C4.m4a"
+    },
+    {
+      "id": "piano-soft-72",
+      "format": "ogg",
+      "bytes": 61613,
+      "sha256": "5655d87c4155fd93b5a8821720a609b273e2360892d594b37891431f665ac6a3",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20C4.ogg"
+    },
+    {
+      "id": "piano-soft-76",
+      "format": "m4a",
+      "bytes": 68848,
+      "sha256": "75e68894a3edc32deaa40d6e9b8e7545e8f6b7ee9229f11b0666a5a3f9c497b9",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20E4.m4a"
+    },
+    {
+      "id": "piano-soft-76",
+      "format": "ogg",
+      "bytes": 56254,
+      "sha256": "c3d21998abab1a1c4d06b73c3d531f0c430ee3ff59e9d40178454a1a2cdb0b43",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20E4.ogg"
+    },
+    {
+      "id": "piano-soft-79",
+      "format": "m4a",
+      "bytes": 61471,
+      "sha256": "29e4604920e9a914347ba6d42cc7cbfc1bc34081691c51186de9518ca4e0245a",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20G4.m4a"
+    },
+    {
+      "id": "piano-soft-79",
+      "format": "ogg",
+      "bytes": 52981,
+      "sha256": "02d0703a2324fecf8d61b00fe2d523e6d58900910bac515dd2f06a37b151f1f2",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20G4.ogg"
+    },
+    {
+      "id": "piano-soft-83",
+      "format": "m4a",
+      "bytes": 41577,
+      "sha256": "dd40b779c26a7936a69c60614a1d8d0e09cdc426f7c683d6a13e001b31da18db",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20B4.m4a"
+    },
+    {
+      "id": "piano-soft-83",
+      "format": "ogg",
+      "bytes": 37234,
+      "sha256": "31573d0e777ee3bb195c166f5a91abe43c4d43612f8ff9c2b60bf3aa1d25e109",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sfzinstruments-splendid-grand-piano/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/samples/PP%20B4.ogg"
+    },
+    {
+      "id": "ride-hard",
+      "format": "m4a",
+      "bytes": 15671,
+      "sha256": "046b0d90deeee5cba62f5da621ab158d86a86e52db78c13c314f4128f95e4824",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sonic-pi-samples/b39c72bd79024e6eec58c4f55c333ede79b700b6/samples/drum_cymbal_hard.m4a"
+    },
+    {
+      "id": "ride-hard",
+      "format": "ogg",
+      "bytes": 15251,
+      "sha256": "956dfbd66d38c56339e045a26d011b1f315fdd7ce5e9b6dc6689c5a38e21d814",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sonic-pi-samples/b39c72bd79024e6eec58c4f55c333ede79b700b6/samples/drum_cymbal_hard.ogg"
+    },
+    {
+      "id": "ride-soft",
+      "format": "m4a",
+      "bytes": 9490,
+      "sha256": "71c7c6d8b884109118db814eb0b3c39851233fd826117b2b3830661dc730567b",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sonic-pi-samples/b39c72bd79024e6eec58c4f55c333ede79b700b6/samples/drum_cymbal_soft.m4a"
+    },
+    {
+      "id": "ride-soft",
+      "format": "ogg",
+      "bytes": 9216,
+      "sha256": "7ecbf872ce784918541253a5ab21e1661f5f433a1fe18613a07eb360903f256a",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sonic-pi-samples/b39c72bd79024e6eec58c4f55c333ede79b700b6/samples/drum_cymbal_soft.ogg"
+    },
+    {
+      "id": "snare-soft",
+      "format": "m4a",
+      "bytes": 3981,
+      "sha256": "d3e911a19caa2ea4577c76d82e428dbafe6de9008bf7d608a784ef7c90395697",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sonic-pi-samples/b39c72bd79024e6eec58c4f55c333ede79b700b6/samples/drum_snare_soft.m4a"
+    },
+    {
+      "id": "snare-soft",
+      "format": "ogg",
+      "bytes": 2616,
+      "sha256": "f371273531f922e5472fd33cd51bbf9369cd277ceca49d0675aa9675a952d669",
+      "sourceURL": "https://raw.githubusercontent.com/smpldsnds/sonic-pi-samples/b39c72bd79024e6eec58c4f55c333ede79b700b6/samples/drum_snare_soft.ogg"
+    }
+  ]
+}

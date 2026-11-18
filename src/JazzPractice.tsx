@@ -12,7 +12,6 @@ import {
   Play,
   Plus,
   Repeat2,
-  RotateCcw,
   SkipBack,
   SlidersHorizontal,
   Square,
@@ -412,12 +411,12 @@ export default function JazzPractice({
           {source === "backing"
             ? position
               ? position.countIn
-                ? `COUNT IN · ${position.beat + 1}`
+                ? `${position.beat + 1} / ${meter.beats}`
                 : `${position.bar + 1}/${bars.length} · ${position.chorus}회`
               : `${meter.beats}/${meter.denominator}`
             : fileName
               ? `${formatTime(trackState.position)} / ${formatTime(trackState.duration)}`
-              : "MP3 · WAV · M4A"}
+              : ""}
         </span>
       </div>
       <div className="practice-transport">
@@ -641,19 +640,10 @@ export default function JazzPractice({
               <option value="ballad">Ballad</option>
               <option value="straight">Straight</option>
             </select>
-            <button
-              className="icon-button"
-              title="원래 템포"
-              aria-label="원래 템포"
-              onClick={() => setTempo(standard.bpm)}
-            >
-              <RotateCcw size={14} />
-            </button>
           </div>
           <details className="practice-settings">
-            <summary title="믹서·카운트인">
+            <summary title="믹서·카운트인" aria-label="믹서와 카운트인 설정">
               <SlidersHorizontal size={14} />
-              <span>믹서</span>
             </summary>
             <div className="practice-mixer">
               {(
@@ -887,9 +877,6 @@ export default function JazzPractice({
             onChange={(event) => setVolume(+event.target.value)}
           />
         </label>
-        <span className="practice-kind">
-          {source === "backing" ? "SYNTH BACKING" : "LOCAL AUDIO"}
-        </span>
       </div>
       {error && (
         <div className="practice-error" role="alert">

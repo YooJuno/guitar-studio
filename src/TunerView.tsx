@@ -5,8 +5,8 @@ import {
   ArrowUp,
   Check,
   ChevronDown,
-  Info,
   Mic,
+  RotateCcw,
   Square,
   Star,
   Volume2,
@@ -95,7 +95,6 @@ export default function TunerView({
   const [poly, setPoly] = useState<Array<TrackedString | null>>([]);
   const [level, setLevel] = useState(0);
   const [clipping, setClipping] = useState(false);
-  const [sampleRate, setSampleRate] = useState<number | null>(null);
   const [reference, setReference] = useState<number | null>(null);
   const audio = useRef<TunerAudio | null>(null);
   const request = useRef(0);
@@ -200,7 +199,6 @@ export default function TunerView({
           );
           meterEnvelope.current = { level: displayLevel, time: now };
           setLevel(displayLevel);
-          setSampleRate(frame.sampleRate);
           if (frame.clipped) clipUntil.current = now + 1500;
           setClipping(now < clipUntil.current);
           if (now < suppressUntil.current) {
@@ -318,11 +316,7 @@ export default function TunerView({
 
   return (
     <div className="tuner-view">
-      <div className="tuner-title-row">
-        <div>
-          <p className="eyebrow">TUNER</p>
-          <h2>튜너</h2>
-        </div>
+      <div className="tuner-toolbar">
         <button
           type="button"
           className={`button tuner-mobile-start ${active || starting ? "secondary" : "primary"}`}
@@ -345,6 +339,7 @@ export default function TunerView({
             type="button"
             className={mode === "poly" ? "active" : ""}
             aria-pressed={mode === "poly"}
+            title="실험 기능: 개방현을 함께 분석합니다. 배음이 겹치거나 신호가 약하면 미검출·오검출이 생길 수 있습니다. 마지막은 한 현씩 확인하세요."
             onClick={() => setMode("poly")}
           >
             동시에 <span className="tuner-beta">실험</span>
@@ -375,7 +370,7 @@ export default function TunerView({
           </select>
         </label>
         <label className="tuner-preset-select">
-          튜닝
+          {customStrings ? "튜닝 · 사용자" : "튜닝"}
           <select
             aria-label="튜닝 프리셋"
             value={tuning.id}
@@ -413,58 +408,67 @@ export default function TunerView({
           <Star size={19} fill={favorited ? "currentColor" : "none"} />
         </button>
       </div>
-      <p className="tuner-preset-description">
-        {customStrings && <span>Custom · </span>}
-        {strings.map((midi) => noteName(midi, false)).join(" · ")}
-      </p>
 
       <section
         className={`tuner-screen ${active ? "is-listening" : ""}`}
         aria-label={mode === "single" ? "단음 튜너 화면" : "동시 튜너 화면"}
       >
         <div className="tuner-screen-top">
-          <span className="tuner-listening">
+          <span
+            className="tuner-listening"
+            aria-label={
+              starting ? "입력 연결 중" : active ? "입력 연결됨" : "입력 대기"
+            }
+            title={
+              starting ? "입력 연결 중" : active ? "입력 연결됨" : "입력 대기"
+            }
+          >
+            <Mic size={16} aria-hidden="true" />
             <i className={active ? "on" : ""} />
-            {starting ? "입력 연결 중" : active ? "입력 연결됨" : "입력 대기"}
           </span>
-          <span>A4 = {a4} Hz</span>
+          {reference !== null && (
+            <span
+              className="tuner-reference-status"
+              aria-label={`${noteName(strings[reference])} 기준음 재생 중`}
+            >
+              <Volume2 size={16} />
+              {noteName(strings[reference])}
+            </span>
+          )}
         </div>
         {mode === "single" ? (
           <>
             <div
-              className={`tuner-note-area ${inTune ? "is-tuned" : ""}`}
-              style={{ opacity: pitch?.held ? 0.65 : 1 }}
+              className={`tuner-note-area ${inTune ? "is-tuned" : ""} ${pitch?.held ? "is-held" : ""}`}
             >
               <div className="tuner-pitch-note">
                 {measuredNote}
                 <sub>{measuredOctave}</sub>
               </div>
               <div className="tuner-cents">
-                {cents === null ? (
-                  <span>한 현씩 연주</span>
-                ) : pitch?.held ? (
-                  <span title="신호가 약해 마지막 측정값을 잠시 유지합니다. 현재 튜닝 판정이 아닙니다.">
+                {cents === null ? null : pitch?.held ? (
+                  <span
+                    className="tuner-held-label"
+                    title="신호가 약해 마지막 측정값을 잠시 유지합니다. 현재 튜닝 판정이 아닙니다."
+                  >
                     마지막 측정 · {signed(cents)} ¢
                   </span>
-                ) : inTune ? (
-                  <>
-                    <Check size={16} /> 정확해요 <span>{signed(cents)} ¢</span>
-                  </>
                 ) : (
                   <>
-                    {cents < 0 ? (
-                      <ArrowUp size={16} />
+                    {inTune ? (
+                      <Check size={19} aria-label="정음" />
+                    ) : cents < 0 ? (
+                      <ArrowUp size={19} aria-label="높이기" />
                     ) : (
-                      <ArrowDown size={16} />
+                      <ArrowDown size={19} aria-label="낮추기" />
                     )}
-                    {cents < 0 ? "조금 높이세요" : "조금 낮추세요"}{" "}
                     <span>{signed(cents)} ¢</span>
                   </>
                 )}
               </div>
             </div>
             <div
-              className="tuner-gauge"
+              className={`tuner-gauge ${pitch?.held ? "is-held" : ""}`}
               aria-label={
                 cents === null
                   ? "측정값 없음"
@@ -518,12 +522,14 @@ export default function TunerView({
           </>
         ) : (
           <div className="tuner-poly-area">
-            <div className="tuner-poly-heading">
-              <span>모든 개방현 연주</span>
-              <span>
-                {active ? `${detectedCount} / ${strings.length} 감지` : "—"}
-              </span>
-            </div>
+            {active && (
+              <div
+                className="tuner-poly-heading"
+                aria-label={`${strings.length}개 현 중 ${detectedCount}개 감지`}
+              >
+                {detectedCount} / {strings.length}
+              </div>
+            )}
             <div
               className="tuner-poly-grid"
               style={{ "--strings": strings.length } as CSSProperties}
@@ -536,7 +542,7 @@ export default function TunerView({
                   Math.abs(result.cents) <= 5;
                 return (
                   <div
-                    className={`tuner-poly-string ${result ? "has-signal" : ""} ${tuned ? "is-tuned" : ""}`}
+                    className={`tuner-poly-string ${result ? "has-signal" : ""} ${tuned ? "is-tuned" : ""} ${result?.held ? "is-held" : ""}`}
                     key={index}
                   >
                     <span className="tuner-string-number">
@@ -580,16 +586,6 @@ export default function TunerView({
             </div>
           </div>
         )}
-        <div className="tuner-screen-bottom">
-          <span>
-            {reference !== null
-              ? `${noteName(strings[reference])} 재생 중`
-              : active
-                ? "LOCAL AUDIO"
-                : "LINE / MIC"}
-          </span>
-          {sampleRate && <span>{(sampleRate / 1000).toFixed(1)} kHz</span>}
-        </div>
       </section>
 
       {mode === "single" && (
@@ -623,13 +619,13 @@ export default function TunerView({
       <div className="tuner-input-panel">
         <div className="tuner-input-fields">
           <label className="tuner-device-select">
-            오디오 입력
+            입력
             <select
               aria-label="오디오 입력 장치"
               value={deviceId}
               onChange={(event) => changeInput(event.target.value, channel)}
             >
-              <option value="">시스템 기본 입력</option>
+              <option value="">기본 입력</option>
               {devices
                 .filter(
                   (device) => device.deviceId && device.deviceId !== "default",
@@ -653,22 +649,25 @@ export default function TunerView({
                 )
               }
             >
-              <option value="left">왼쪽 · 1</option>
-              <option value="right">오른쪽 · 2</option>
-              <option value="mix">L + R 믹스</option>
+              <option value="left">L · 1</option>
+              <option value="right">R · 2</option>
+              <option value="mix">L + R</option>
             </select>
           </label>
           <button
             type="button"
             className={`button ${active || starting ? "secondary" : "primary"} tuner-start`}
             onClick={active || starting ? stop : () => void start()}
+            aria-label={
+              active || starting ? "튜너 입력 정지" : "튜너 입력 시작"
+            }
           >
             {active || starting ? <Square size={16} /> : <Mic size={17} />}
-            {starting ? "연결 취소" : active ? "입력 정지" : "입력 시작"}
+            {starting ? "취소" : active ? "정지" : "시작"}
           </button>
         </div>
         <div className={`tuner-level-row ${clipping ? "is-clipping" : ""}`}>
-          <span>INPUT</span>
+          <Mic size={16} aria-hidden="true" />
           <div
             className="tuner-level-meter"
             role="meter"
@@ -684,12 +683,14 @@ export default function TunerView({
             <i style={{ width: `${meter}%` }} />
             <b />
           </div>
-          <span>
+          <span title={clipping ? "입력 게인을 낮추세요" : "입력 레벨"}>
             {clipping
-              ? "CLIP · 게인을 낮추세요"
-              : active && level > 0
-                ? `${Math.max(-80, Math.round(20 * Math.log10(level)))} dBFS`
-                : "— dBFS"}
+              ? "CLIP"
+              : active
+                ? level > 0
+                  ? `${Math.max(-80, Math.round(20 * Math.log10(level)))} dBFS`
+                  : "−∞ dBFS"
+                : null}
           </span>
         </div>
       </div>
@@ -698,25 +699,15 @@ export default function TunerView({
           {error}
         </div>
       )}
-      {mode === "poly" && (
-        <div className="tuner-poly-note">
-          <Info size={14} />
-          <span title="선택한 튜닝의 각 현을 추정합니다. 배음이 겹치거나 신호가 약하면 미검출·오검출이 생길 수 있습니다. 소리를 약 0.7초 유지하고 마지막은 한 현씩 확인하세요.">
-            실험 모드 · 마지막은 한 현씩 확인
-          </span>
-        </div>
-      )}
 
       <details className="tuner-settings">
         <summary>
-          기준음과 사용자 튜닝
+          기준음 · 튜닝
           <ChevronDown size={16} />
         </summary>
         <div className="tuner-settings-content">
           <div className="tuner-calibration">
-            <label htmlFor="tuner-a4">
-              기준 피치 <b>A4</b>
-            </label>
+            <label htmlFor="tuner-a4">A4</label>
             <div>
               <input
                 id="tuner-a4"
@@ -731,21 +722,26 @@ export default function TunerView({
                 }}
               />
               <span>Hz</span>
-              <button type="button" onClick={() => onChange({ a4: 440 })}>
-                440으로
+              <button
+                type="button"
+                onClick={() => onChange({ a4: 440 })}
+                title="440 Hz로 복원"
+                aria-label="기준 피치 440 Hz로 복원"
+              >
+                <RotateCcw size={17} />
               </button>
             </div>
           </div>
           <div className="tuner-custom-heading">
-            <p>
-              현별 목표음 <span>낮은 현 → 높은 현</span>
-            </p>
+            <p>현별 목표음</p>
             {customStrings && (
               <button
                 type="button"
                 onClick={() => onChange({ customStrings: null })}
+                title="프리셋 복원"
+                aria-label="프리셋 복원"
               >
-                프리셋 복원
+                <RotateCcw size={17} />
               </button>
             )}
           </div>
@@ -776,10 +772,10 @@ export default function TunerView({
                   type="button"
                   className={reference === index ? "playing" : ""}
                   aria-label={`${noteName(midi)} 기준음 듣기`}
+                  title={`${noteName(midi)} 기준음`}
                   onClick={() => void sound(index)}
                 >
-                  <Volume2 size={15} />
-                  <span>듣기</span>
+                  <Volume2 size={18} />
                 </button>
               </div>
             ))}

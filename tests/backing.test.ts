@@ -26,7 +26,11 @@ test("three chords in four beats retain fractional boundaries, qualities and sla
   const chords = ["Cm7", "F7♭9", "B♭maj7/D"];
   const events = planBackingBar({ ...base, bars: [chords] }, 0);
   const starts = events.filter(
-    (event) => event.instrument === "piano" && event.velocity > 0.7,
+    (event) =>
+      event.instrument === "piano" &&
+      chords.some(
+        (_, index) => Math.abs(event.offset - (index * 4) / 3) < 1e-7,
+      ),
   );
   assert.equal(starts.length, 3);
   starts.forEach((event, index) => {
@@ -61,11 +65,31 @@ test("transposition shifts every pitched note and keeps altered/extended chord c
   assert.equal(original.length, shifted.length);
   original.forEach((event, index) => {
     assert.equal(event.offset, shifted[index].offset);
-    assert.deepEqual(
-      shifted[index].notes,
-      event.notes.map((note) => note + 5),
-    );
+    if (event.instrument === "bass") {
+      assert.deepEqual(
+        shifted[index].notes.map(mod),
+        event.notes.map((note) => mod(note + 5)),
+      );
+      assert.ok(shifted[index].notes.every((note) => note >= 28 && note <= 47));
+    } else
+      assert.deepEqual(
+        shifted[index].notes,
+        event.notes.map((note) => note + 5),
+      );
   });
+  for (let shift = -11; shift <= 11; shift++) {
+    const plan = planBackingBar({ ...config, transpose: shift }, 0);
+    const bass = plan.filter((event) => event.instrument === "bass");
+    assert.ok(
+      bass.every((event) => event.notes[0] >= 28 && event.notes[0] <= 47),
+      `bass leaves its register at key ${shift}`,
+    );
+    assert.equal(
+      mod(bass[0].notes[0]),
+      mod(shift),
+      "transposed C root must preserve its pitch class",
+    );
+  }
   const c13 = original.find((event) => event.instrument === "piano")!;
   assert.ok(
     c13.notes.some((note) => mod(note) === 9),
@@ -300,10 +324,54 @@ class Clock {
   }
 }
 
+const renderingBoundary: ConstructorParameters<typeof JazzBacking>[0] = async (
+  audioContext,
+  outputs,
+) => {
+  const context = audioContext as unknown as Context;
+  const voices = new Set<Source>();
+  const render = (
+    instrument: "piano" | "bass" | "drums",
+    notes: number[],
+    time: number,
+    duration: number,
+  ) => {
+    for (const note of notes) {
+      const source =
+        instrument === "drums"
+          ? context.createBufferSource()
+          : context.createOscillator();
+      if (instrument !== "drums")
+        source.frequency.setValueAtTime(440 * 2 ** ((note - 69) / 12), time);
+      source.connect(outputs[instrument] as unknown as Node);
+      voices.add(source);
+      source.onended = () => {
+        voices.delete(source);
+        source.disconnect();
+      };
+      source.start(time);
+      source.stop(time + duration);
+    }
+  };
+  return {
+    playPiano: (notes, time, duration) =>
+      render("piano", notes, time, duration),
+    playBass: (note, time, duration) => render("bass", [note], time, duration),
+    playDrum: (_kind, time) => render("drums", [0], time, 0.1),
+    dispose: () => {
+      voices.forEach((source) => {
+        source.stop();
+        source.disconnect();
+      });
+      voices.clear();
+    },
+  };
+};
+
 test("count-in follows the meter, finite form visits every bar and ends exactly once", async (t) => {
   const clock = new Clock();
   t.after(clock.install());
-  const backing = new JazzBacking();
+  const backing = new JazzBacking(renderingBoundary);
   const positions: Array<BackingPosition & { at: number }> = [];
   let ended = 0;
   await backing.start(
@@ -340,7 +408,7 @@ test("count-in follows the meter, finite form visits every bar and ends exactly 
 test("an inclusive loop range wraps only selected bars, increments choruses and stops cleanly", async (t) => {
   const clock = new Clock();
   t.after(clock.install());
-  const backing = new JazzBacking();
+  const backing = new JazzBacking(renderingBoundary);
   const positions: BackingPosition[] = [];
   let ended = 0;
   await backing.start(
@@ -373,7 +441,7 @@ test("an inclusive loop range wraps only selected bars, increments choruses and 
 test("live tempo and key changes affect newly scheduled audio and chord labels", async (t) => {
   const clock = new Clock();
   t.after(clock.install());
-  const backing = new JazzBacking();
+  const backing = new JazzBacking(renderingBoundary);
   const positions: Array<BackingPosition & { at: number }> = [];
   await backing.start(
     { ...base, bars: [["Cmaj7"]], loop: true, loopEnd: 0, drums: 0 },
@@ -394,13 +462,14 @@ test("live tempo and key changes affect newly scheduled audio and chord labels",
   const starts = clock.contexts[0].starts
     .slice(before)
     .filter((start) => start.source.frequency.events.length);
-  // Piano/bass are Cmaj7 transposed to Dmaj7: D,F#,A,C# and their harmonics.
+  // The rootless shell and walking notes remain within Dmaj7 after a live shift.
   assert.ok(
-    starts.some((start) => {
+    starts.every((start) => {
       const frequency = start.source.frequency.events[0].value;
       const midi = 69 + 12 * Math.log2(frequency / 440);
       return (
-        Math.abs(midi - Math.round(midi)) < 1e-7 && mod(Math.round(midi)) === 2
+        Math.abs(midi - Math.round(midi)) < 1e-7 &&
+        [2, 6, 9, 1].includes(mod(Math.round(midi)))
       );
     }),
   );
@@ -414,7 +483,7 @@ test("live tempo and key changes affect newly scheduled audio and chord labels",
 test("background resumption skips stale callbacks and never schedules audio in the past", async (t) => {
   const clock = new Clock();
   t.after(clock.install());
-  const backing = new JazzBacking();
+  const backing = new JazzBacking(renderingBoundary);
   const positions: BackingPosition[] = [];
   await backing.start(
     { ...base, loop: true },
@@ -438,7 +507,7 @@ test("background resumption skips stale callbacks and never schedules audio in t
 test("empty form, resume errors, pending-start cancellation and muted mix release resources", async (t) => {
   const clock = new Clock();
   t.after(clock.install());
-  const backing = new JazzBacking();
+  const backing = new JazzBacking(renderingBoundary);
   await assert.rejects(
     backing.start(
       { ...base, bars: [] },
@@ -477,5 +546,113 @@ test("empty form, resume errors, pending-start cancellation and muted mix releas
   clock.advance(500);
   assert.equal(clock.contexts[2].starts.length, 0);
   backing.stop();
+  assert.equal(clock.tasks.size, 0);
+});
+
+test("jazz shells retain guide tones with small voice movement and walking bass approaches the next root", () => {
+  const config = {
+    ...base,
+    bars: [["Cm7"], ["F7"], ["B♭maj7"], ["E♭maj7"], ["Am7♭5"], ["D7"], ["Gm7"]],
+  };
+  const chords = config.bars.map((bar) => parseJazzChord(bar[0])!);
+  let previous: number[] | null = null;
+  for (let bar = 0; bar < config.bars.length; bar++) {
+    const plan = planBackingBar(config, bar);
+    const piano = plan.find((event) => event.instrument === "piano")!.notes;
+    assert.ok(
+      piano.length >= 2 && piano.length <= 4,
+      "comping must use sparse shells",
+    );
+    assert.ok(
+      piano.every((note) => note >= 50 && note <= 77),
+      "piano remains in its comping register",
+    );
+    const third = chords[bar].intervals.find(
+      (interval) => interval === 3 || interval === 4,
+    )!;
+    const seventh = chords[bar].intervals.find(
+      (interval) => interval === 10 || interval === 11,
+    )!;
+    assert.ok(piano.some((note) => mod(note - chords[bar].root) === third));
+    assert.ok(piano.some((note) => mod(note - chords[bar].root) === seventh));
+    if (previous) {
+      const movement = piano.reduce(
+        (sum, note) =>
+          sum + Math.min(...previous!.map((prior) => Math.abs(note - prior))),
+        0,
+      );
+      assert.ok(
+        movement <= 12,
+        `unnecessary comping jump at bar ${bar + 1}: ${movement}`,
+      );
+    }
+    previous = piano;
+    const bass = plan.filter((event) => event.instrument === "bass");
+    assert.equal(bass.length, 4);
+    assert.equal(mod(bass[0].notes[0]), chords[bar].bass);
+    if (bar < config.bars.length - 1) {
+      const distance = mod(bass.at(-1)!.notes[0] - chords[bar + 1].bass);
+      assert.ok(
+        distance === 1 || distance === 11,
+        "last walking note must lead by semitone to the next root",
+      );
+    }
+  }
+  const swing = planBackingBar(config, 0);
+  assert.deepEqual(
+    swing
+      .filter((event) => event.instrument === "hat")
+      .map((event) => event.offset),
+    [1, 3],
+  );
+  assert.ok(
+    swing.some(
+      (event) =>
+        event.instrument === "ride" && Math.abs(event.offset - 5 / 3) < 1e-7,
+    ),
+  );
+});
+
+test("cancelling pending sample preparation aborts loading and a late renderer cannot start audio", async (t) => {
+  const clock = new Clock();
+  t.after(clock.install());
+  let resolveLoad:
+    | ((
+        renderer: Awaited<
+          ReturnType<NonNullable<ConstructorParameters<typeof JazzBacking>[0]>>
+        >,
+      ) => void)
+    | null = null;
+  let signal: AbortSignal | undefined;
+  let disposed = 0;
+  const factory: NonNullable<
+    ConstructorParameters<typeof JazzBacking>[0]
+  > = async (_context, _outputs, options) => {
+    signal = options?.signal;
+    return new Promise((resolve) => {
+      resolveLoad = resolve;
+    });
+  };
+  const backing = new JazzBacking(factory);
+  const starting = backing.start(
+    base,
+    () => assert.fail("cancelled position callback"),
+    () => assert.fail("cancelled end callback"),
+  );
+  await Promise.resolve();
+  await Promise.resolve();
+  backing.stop();
+  assert.ok(signal?.aborted);
+  resolveLoad!({
+    playPiano: () => assert.fail("late piano"),
+    playBass: () => assert.fail("late bass"),
+    playDrum: () => assert.fail("late drum"),
+    dispose: () => {
+      disposed++;
+    },
+  });
+  await starting;
+  assert.equal(disposed, 1);
+  assert.equal(clock.contexts[0].state, "closed");
   assert.equal(clock.tasks.size, 0);
 });

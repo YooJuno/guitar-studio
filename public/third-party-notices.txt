@@ -27,3 +27,8 @@ JUNO STUDIO does not modify these library source files. The application loads
 the package's supplied AudioWorklet processor as a separate local asset.
 SoundTouchJS 2.1.1 uses MPL-2.0; the license notices from older LGPL releases
 do not describe the version included in this application.
+
+Acoustic jazz sample bank
+Recorded piano, double bass and drum sample credits and public-domain/CC0
+provenance: /samples/jazz-v1/NOTICE.txt. Source URLs and hashes:
+/samples/jazz-v1/manifest.json. License: /licenses/CC0-1.0.txt.

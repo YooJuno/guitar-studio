@@ -1,4 +1,6 @@
 import { parseJazzChord, transposeChord } from "./jazz";
+import { JazzInstruments } from "./instruments";
+import type { JazzDrum, JazzInstrumentOutputs } from "./instruments";
 
 export interface BackingConfig {
   bars: string[][];
@@ -26,7 +28,7 @@ export interface BackingPosition {
 export interface BackingEvent {
   offset: number;
   duration: number;
-  instrument: "piano" | "bass" | "ride" | "snare" | "kick" | "brush";
+  instrument: "piano" | "bass" | "ride" | "hat" | "snare" | "kick" | "brush";
   notes: number[];
   velocity: number;
   chord: string;
@@ -36,7 +38,6 @@ const clamp = (value: number, low: number, high: number) =>
 const safe = (value: number, fallback: number) =>
   Number.isFinite(value) ? value : fallback;
 const pc = (value: number) => ((value % 12) + 12) % 12;
-const midiHz = (midi: number) => 440 * 2 ** ((midi - 69) / 12);
 function normalize(config: BackingConfig): BackingConfig {
   const bars = Array.isArray(config.bars)
     ? config.bars.map((bar) =>
@@ -62,80 +63,155 @@ function normalize(config: BackingConfig): BackingConfig {
     drums: clamp(safe(config.drums, 0.5), 0, 1),
   };
 }
-function pianoNotes(
+function chordColors(
   chord: NonNullable<ReturnType<typeof parseJazzChord>>,
-  transpose: number,
+  name: string,
 ): number[] {
   const intervals = [...new Set(chord.intervals)];
-  // Keep the third/seventh character and written extensions; omit the fifth
-  // in dense chords so the comping stays out of the walking bass register.
-  const chosen =
-    intervals.length > 4
-      ? intervals.filter((interval) => interval !== 0 && pc(interval) !== 7)
-      : intervals;
-  let notes = chosen.map((interval) => 48 + chord.root + interval + transpose);
-  while (Math.min(...notes) < 48) notes = notes.map((note) => note + 12);
-  while (Math.max(...notes) > 84) notes = notes.map((note) => note - 12);
-  return notes;
+  const seventh =
+    intervals.find((interval) => [10, 11].includes(interval)) ??
+    (intervals.includes(9) ? 9 : undefined);
+  if (seventh === undefined) return intervals;
+  const naturalEleventh =
+    /11/.test(name) &&
+    intervals.includes(17) &&
+    intervals.includes(4) &&
+    !intervals.includes(21);
+  const third = naturalEleventh
+    ? 5
+    : (intervals.find((interval) => interval === 3 || interval === 4) ??
+      intervals.find((interval) => interval === 2 || interval === 5));
+  const result = [third, seventh].filter(
+    (interval): interval is number => interval !== undefined,
+  );
+  const colors = [21, 18, 17, 14, 13, 15, 20].filter((interval) =>
+    intervals.includes(interval),
+  );
+  // Keep the written 13th/9th, rather than blindly stacking every lower extension.
+  if (intervals.includes(21) && intervals.includes(14)) {
+    colors.splice(
+      0,
+      colors.length,
+      21,
+      14,
+      ...colors.filter((interval) => interval !== 21 && interval !== 14),
+    );
+  }
+  for (const interval of colors)
+    if (
+      !result.some((value) => pc(value) === pc(interval)) &&
+      result.length < 4
+    )
+      result.push(interval);
+  if (result.length < 3) {
+    const fifth = intervals.find((interval) => [6, 7, 8].includes(interval));
+    if (fifth !== undefined) result.push(fifth);
+  }
+  return [...new Set(result.length >= 2 ? result : intervals)];
 }
-function bassRegister(pitch: number) {
-  return 28 + pc(pitch - 4);
+
+/** Close-position rootless shells chosen by voice movement, not root-position jumps. */
+function pianoNotes(
+  chord: NonNullable<ReturnType<typeof parseJazzChord>>,
+  name: string,
+  previous: number[] | null,
+): number[] {
+  const classes = [
+    ...new Set(
+      chordColors(chord, name).map((interval) => pc(chord.root + interval)),
+    ),
+  ];
+  const options = classes.map((pitch) =>
+    Array.from({ length: 4 }, (_, octave) => pitch + 12 * (octave + 3)).filter(
+      (note) => note >= 50 && note <= 77,
+    ),
+  );
+  let best: number[] = [];
+  let bestScore = Infinity;
+  const visit = (index: number, notes: number[]) => {
+    if (index < options.length) {
+      options[index].forEach((note) => visit(index + 1, [...notes, note]));
+      return;
+    }
+    const sorted = [...notes].sort((a, b) => a - b);
+    const span = sorted.at(-1)! - sorted[0];
+    if (span > 19) return;
+    let score =
+      Math.abs(
+        sorted.reduce((sum, note) => sum + note, 0) / sorted.length - 63,
+      ) * 0.55;
+    score += Math.max(0, span - 13) * 0.7;
+    for (let i = 1; i < sorted.length; i++) {
+      const gap = sorted[i] - sorted[i - 1];
+      score += gap === 1 ? 7 : gap === 2 ? 1.4 : gap > 7 ? (gap - 7) * 2 : 0;
+    }
+    if (previous?.length) {
+      score +=
+        sorted.reduce(
+          (sum, note) =>
+            sum + Math.min(...previous.map((prior) => Math.abs(note - prior))),
+          0,
+        ) * 1.7;
+      score +=
+        previous.reduce(
+          (sum, prior) =>
+            sum + Math.min(...sorted.map((note) => Math.abs(note - prior))),
+          0,
+        ) * 0.8;
+    }
+    if (score < bestScore) {
+      bestScore = score;
+      best = sorted;
+    }
+  };
+  visit(0, []);
+  return best.length ? best : classes.map((pitch) => 60 + pitch);
 }
 function uniqueOffsets(values: number[]): number[] {
   return [
     ...new Set(values.map((value) => Math.round(value * 1e9) / 1e9)),
   ].sort((a, b) => a - b);
 }
+function bassNote(pitch: number, previous: number | null): number {
+  const options = Array.from(
+    { length: 5 },
+    (_, octave) => pc(pitch) + octave * 12,
+  ).filter((note) => note >= 28 && note <= 47);
+  return options.sort(
+    (a, b) =>
+      Math.abs(a - (previous ?? 38)) +
+      Math.abs(a - 38) * 0.16 -
+      (Math.abs(b - (previous ?? 38)) + Math.abs(b - 38) * 0.16),
+  )[0];
+}
+function bassRegister(note: number): number {
+  let result = Math.round(note);
+  while (result < 28) result += 12;
+  while (result > 47) result -= 12;
+  return result;
+}
+function nextChordName(config: BackingConfig, bar: number): string {
+  const next =
+    bar >= (config.loop ? config.loopEnd : config.bars.length - 1)
+      ? config.loop
+        ? config.loopStart
+        : bar
+      : bar + 1;
+  return config.bars[next]?.[0] ?? "N.C.";
+}
 
-/** Pure musical plan. Offsets and durations are measured in the selected beat unit. */
-export function planBackingBar(
-  config: BackingConfig,
+function bassPart(
+  cfg: BackingConfig,
   barIndex: number,
-  chorus = 1,
-): BackingEvent[] {
-  const cfg = normalize(config);
+  previousBass: number | null,
+): { events: BackingEvent[]; last: number | null } {
   const chords = cfg.bars[barIndex] ?? [];
-  if (!chords.length) return [];
   const events: BackingEvent[] = [];
+  if (!chords.length) return { events, last: previousBass };
   const length = cfg.beats / chords.length;
   const chordAt = (offset: number) =>
     Math.min(chords.length - 1, Math.floor((offset + 1e-8) / length));
-  chords.forEach((name, index) => {
-    const chord = parseJazzChord(name);
-    if (!chord) return;
-    const offset = index * length;
-    const duration =
-      cfg.style === "ballad"
-        ? length * 0.85
-        : Math.min(length * 0.7, cfg.style === "bossa" ? 0.75 : 0.65);
-    const notes = pianoNotes(chord, cfg.transpose);
-    events.push({
-      offset,
-      duration,
-      instrument: "piano",
-      notes,
-      velocity: index === 0 ? 0.85 : 0.73,
-      chord: name,
-    });
-    // A quiet syncopation, bounded by the actual next chord boundary.
-    const comp =
-      cfg.style === "bossa"
-        ? 0.75
-        : cfg.style === "swing"
-          ? 2 / 3
-          : cfg.style === "straight"
-            ? 0.5
-            : length / 2;
-    if (length > comp + 0.3)
-      events.push({
-        offset: offset + comp,
-        duration: Math.min(0.55, length - comp - 0.05),
-        instrument: "piano",
-        notes,
-        velocity: 0.48 + ((barIndex + chorus) % 3) * 0.035,
-        chord: name,
-      });
-  });
+  const chordBoundaries = chords.map((_, index) => index * length);
   const bassTimes =
     cfg.style === "bossa"
       ? Array.from({ length: Math.ceil(cfg.beats / 2) }, (_, index) => [
@@ -145,54 +221,162 @@ export function planBackingBar(
       : cfg.style === "ballad"
         ? [0, cfg.beats / 2]
         : Array.from({ length: cfg.beats }, (_, index) => index);
-  const boundaries = chords.map((_, index) => index * length);
   const bassOffsets = uniqueOffsets(
-    [...bassTimes, ...boundaries].filter(
+    [...bassTimes, ...chordBoundaries].filter(
       (offset) => offset >= 0 && offset < cfg.beats,
     ),
   );
+  const following = parseJazzChord(nextChordName(cfg, barIndex));
   bassOffsets.forEach((offset, index) => {
     const chordIndex = chordAt(offset);
     const name = chords[chordIndex];
     const chord = parseJazzChord(name);
     if (!chord) return;
     const within = offset - chordIndex * length;
+    const remaining = (chordIndex + 1) * length - offset;
     const third =
-      chord.intervals.find(
-        (interval) => pc(interval) === 3 || pc(interval) === 4,
-      ) ?? 0;
+      chord.intervals.find((interval) => interval === 3 || interval === 4) ?? 0;
     const fifth =
-      chord.intervals.find((interval) => [6, 7, 8].includes(pc(interval))) ?? 0;
-    const seventh =
-      chord.intervals.find((interval) => [9, 10, 11].includes(pc(interval))) ??
-      fifth;
-    const pattern = [
-      chord.bass,
-      chord.root + third,
-      chord.root + fifth,
-      chord.root + seventh,
-    ];
-    const pitch =
-      Math.abs(within) < 1e-6
-        ? chord.bass
-        : cfg.style === "bossa"
+      chord.intervals.find((interval) => [6, 7, 8].includes(interval)) ?? 0;
+    let pitch = chord.bass;
+    if (within > 0.001) {
+      pitch =
+        cfg.style === "bossa"
           ? Math.abs(within % 2) < 1e-6
             ? chord.bass
             : chord.root + fifth
-          : pattern[(Math.floor(within) + chorus - 1) % pattern.length];
-    const next = bassOffsets[index + 1] ?? cfg.beats;
+          : cfg.style === "ballad"
+            ? chord.root + fifth
+            : chord.root + (Math.floor(within) % 2 ? third : fifth);
+      if (cfg.style === "swing" && remaining <= 1.01 && within > 0.25) {
+        const next =
+          chordIndex + 1 < chords.length
+            ? parseJazzChord(chords[chordIndex + 1])
+            : following;
+        if (next) {
+          const allowed = chord.intervals.map((interval) =>
+            pc(chord.root + interval),
+          );
+          const approaches = [next.bass - 1, next.bass + 1];
+          const chordTone = approaches.find((note) =>
+            allowed.includes(pc(note)),
+          );
+          pitch = chordTone ?? approaches[0];
+        }
+      }
+    }
+    let note = bassNote(pitch + cfg.transpose, previousBass);
+    if (
+      within > 0.001 &&
+      previousBass !== null &&
+      (Math.abs(note - previousBass) > 7 ||
+        (note === previousBass && remaining > 1.01))
+    ) {
+      const tones = [
+        ...new Set(
+          chord.intervals.map((interval) => pc(chord.root + interval)),
+        ),
+      ];
+      const candidates = tones
+        .flatMap((tone) => [
+          pc(tone + cfg.transpose) + 24,
+          pc(tone + cfg.transpose) + 36,
+          pc(tone + cfg.transpose) + 48,
+        ])
+        .filter(
+          (candidate) =>
+            candidate >= 28 && candidate <= 47 && candidate !== previousBass,
+        );
+      candidates.sort(
+        (a, b) =>
+          Math.abs(a - previousBass!) +
+          Math.abs(a - note) * 0.15 -
+          (Math.abs(b - previousBass!) + Math.abs(b - note) * 0.15),
+      );
+      if (candidates.length) note = candidates[0];
+    }
+    previousBass = note;
+    const nextTime = bassOffsets[index + 1] ?? cfg.beats;
     events.push({
       offset,
       duration: Math.max(
-        0.07,
-        (next - offset) * (cfg.style === "ballad" ? 0.85 : 0.72),
+        0.06,
+        (nextTime - offset) * (cfg.style === "ballad" ? 0.88 : 0.91),
       ),
       instrument: "bass",
-      notes: [bassRegister(pitch) + cfg.transpose],
-      velocity: within < 1e-6 ? 0.95 : 0.78,
+      notes: [note],
+      velocity: within < 0.001 ? 0.72 : 0.64,
       chord: name,
     });
   });
+  return { events, last: previousBass };
+}
+
+/** Pure musical plan. Offsets and durations use the selected beat unit. */
+export function planBackingBar(
+  config: BackingConfig,
+  barIndex: number,
+  _chorus = 1,
+): BackingEvent[] {
+  const cfg = normalize(config);
+  const chords = cfg.bars[barIndex] ?? [];
+  if (!chords.length) return [];
+  const events: BackingEvent[] = [];
+  const length = cfg.beats / chords.length;
+  const chordAt = (offset: number) =>
+    Math.min(chords.length - 1, Math.floor((offset + 1e-8) / length));
+  let previousPiano: number[] | null = null;
+  for (let bar = 0; bar < barIndex; bar++)
+    for (const name of cfg.bars[bar]) {
+      const chord = parseJazzChord(name);
+      if (chord) previousPiano = pianoNotes(chord, name, previousPiano);
+    }
+  const voicings = chords.map((name) => {
+    const chord = parseJazzChord(name);
+    if (!chord) return [];
+    previousPiano = pianoNotes(chord, name, previousPiano);
+    return previousPiano.map((note) => note + cfg.transpose);
+  });
+  const compPattern =
+    cfg.style === "bossa" || cfg.style === "straight"
+      ? Array.from({ length: Math.ceil(cfg.beats / 2) }, (_, index) => [
+          index * 2,
+          index * 2 + 1.5,
+        ]).flat()
+      : cfg.style === "ballad"
+        ? [0, cfg.beats / 2]
+        : [0, barIndex % 2 ? 1 + 2 / 3 : 2 + 2 / 3];
+  const chordBoundaries = chords.map((_, index) => index * length);
+  const compTimes = uniqueOffsets(
+    [...compPattern, ...chordBoundaries].filter(
+      (offset) => offset >= 0 && offset < cfg.beats,
+    ),
+  );
+  compTimes.forEach((offset) => {
+    const index = chordAt(offset);
+    const name = chords[index];
+    if (!voicings[index].length) return;
+    const remaining = (index + 1) * length - offset;
+    if (remaining < 0.18) return;
+    const onChange = Math.abs(offset - index * length) < 1e-6;
+    const duration =
+      cfg.style === "ballad"
+        ? Math.min(remaining * 0.88, 2.7)
+        : Math.min(remaining * 0.78, cfg.style === "bossa" ? 0.85 : 0.65);
+    events.push({
+      offset,
+      duration,
+      instrument: "piano",
+      notes: voicings[index],
+      velocity: onChange ? 0.68 : cfg.style === "bossa" ? 0.58 : 0.48,
+      chord: name,
+    });
+  });
+
+  let previousBass: number | null = null;
+  for (let bar = 0; bar < barIndex; bar++)
+    previousBass = bassPart(cfg, bar, previousBass).last;
+  events.push(...bassPart(cfg, barIndex, previousBass).events);
   const drum = (
     offset: number,
     instrument: BackingEvent["instrument"],
@@ -210,27 +394,28 @@ export function planBackingBar(
   };
   for (let beat = 0; beat < cfg.beats; beat++) {
     if (cfg.style === "swing") {
-      drum(beat, "ride", beat % 2 ? 0.6 : 0.42);
+      drum(beat, "ride", beat % 2 ? 0.62 : 0.47);
       if (beat % 2) {
-        drum(beat + 2 / 3, "ride", 0.34);
-        drum(beat, "snare", 0.2);
+        drum(beat + 2 / 3, "ride", 0.32);
+        drum(beat, "hat", 0.4);
       }
-      if (beat % 2 === 0) drum(beat, "kick", 0.35);
+      if (beat % 2 === 0) drum(beat, "kick", 0.19);
+      if (barIndex % 4 === 2 && beat === 2) drum(beat + 2 / 3, "snare", 0.18);
     } else if (cfg.style === "bossa") {
-      drum(beat, "ride", 0.3);
-      drum(beat + 0.5, "ride", 0.2);
+      drum(beat, "hat", 0.34);
+      drum(beat + 0.5, "hat", 0.24);
       if (beat % 2 === 0) {
-        drum(beat, "kick", 0.5);
-        drum(beat + 1.5, "kick", 0.32);
-      } else drum(beat, "snare", 0.34);
+        drum(beat, "kick", 0.37);
+        drum(beat + 1.5, "kick", 0.26);
+      } else drum(beat, "snare", 0.28);
     } else if (cfg.style === "ballad") {
-      drum(beat, "brush", beat === 0 ? 0.44 : 0.28);
-      if (beat === 0) drum(beat, "kick", 0.28);
-      if (beat === Math.floor(cfg.beats / 2)) drum(beat, "ride", 0.3);
+      if (beat % 2 === 0) drum(beat, "ride", 0.27);
+      else drum(beat, "hat", 0.22);
+      if (beat === 0) drum(beat, "kick", 0.16);
     } else {
-      drum(beat, "ride", 0.38);
-      drum(beat + 0.5, "ride", 0.25);
-      drum(beat, beat % 2 ? "snare" : "kick", beat % 2 ? 0.44 : 0.48);
+      drum(beat, "hat", 0.42);
+      drum(beat + 0.5, "hat", 0.28);
+      drum(beat, beat % 2 ? "snare" : "kick", beat % 2 ? 0.38 : 0.4);
     }
   }
   return events.sort((a, b) => a.offset - b.offset);
@@ -259,7 +444,24 @@ function slotsFor(config: BackingConfig, bar: number, chorus: number): Slot[] {
   }));
 }
 
-/** Locally synthesized jazz practice accompaniment with audio-clock scheduling. */
+export interface BackingRenderer {
+  playPiano(
+    notes: number[],
+    at: number,
+    duration: number,
+    velocity: number,
+  ): void;
+  playBass(note: number, at: number, duration: number, velocity: number): void;
+  playDrum(kind: JazzDrum, at: number, velocity: number): void;
+  dispose(): void;
+}
+type InstrumentFactory = (
+  context: BaseAudioContext,
+  outputs: JazzInstrumentOutputs,
+  options?: { signal?: AbortSignal },
+) => Promise<BackingRenderer>;
+
+/** Acoustic sampled accompaniment with audio-clock scheduling. */
 export class JazzBacking {
   private config: BackingConfig | null = null;
   private context: AudioContext | null = null;
@@ -269,7 +471,8 @@ export class JazzBacking {
   private master: GainNode | null = null;
   private compressor: DynamicsCompressorNode | null = null;
   private buses: Record<"piano" | "bass" | "drums", GainNode> | null = null;
-  private noise: AudioBuffer | null = null;
+  private instruments: BackingRenderer | null = null;
+  private loading: AbortController | null = null;
   private generation = 0;
   private bar = 0;
   private chorus = 1;
@@ -280,6 +483,10 @@ export class JazzBacking {
   private plannedBeats = 4;
   private plannedChords: string[] = [];
   private nextTime = 0;
+
+  constructor(
+    private readonly createInstruments: InstrumentFactory = JazzInstruments.create,
+  ) {}
 
   async start(
     config: BackingConfig,
@@ -301,6 +508,18 @@ export class JazzBacking {
         return;
       }
       this.setupAudio(context);
+      const loading = new AbortController();
+      this.loading = loading;
+      const instruments = await this.createInstruments(context, this.buses!, {
+        signal: loading.signal,
+      });
+      if (generation !== this.generation || loading.signal.aborted) {
+        instruments.dispose();
+        if (context.state !== "closed") await context.close();
+        return;
+      }
+      this.loading = null;
+      this.instruments = instruments;
       this.bar = clamp(
         Math.floor(safe(startBar ?? (cfg.loop ? cfg.loopStart : 0), 0)),
         cfg.loop ? cfg.loopStart : 0,
@@ -469,144 +688,15 @@ export class JazzBacking {
     this.master = master;
     this.compressor = compressor;
     this.buses = { piano, bass, drums };
-    const buffer = context.createBuffer(
-      1,
-      context.sampleRate,
-      context.sampleRate,
-    );
-    const data = buffer.getChannelData(0);
-    let random = 89117;
-    for (let i = 0; i < data.length; i++) {
-      random = (random * 1664525 + 1013904223) >>> 0;
-      data[i] = random / 2147483648 - 1;
-    }
-    this.noise = buffer;
     this.applyLevels(this.config!);
   }
   private applyLevels(config: BackingConfig) {
     if (!this.context || !this.master || !this.buses) return;
     const now = this.context.currentTime;
-    this.master.gain.setTargetAtTime(config.volume * 0.7, now, 0.015);
+    this.master.gain.setTargetAtTime(config.volume * 1.75, now, 0.015);
     this.buses.piano.gain.setTargetAtTime(config.piano, now, 0.015);
     this.buses.bass.gain.setTargetAtTime(config.bass, now, 0.015);
     this.buses.drums.gain.setTargetAtTime(config.drums, now, 0.015);
-  }
-  private register(source: AudioScheduledSourceNode, cleanup: () => void) {
-    this.sources.add(source);
-    source.onended = () => {
-      this.sources.delete(source);
-      source.disconnect();
-      cleanup();
-    };
-  }
-  private tone(
-    notes: number[],
-    time: number,
-    duration: number,
-    velocity: number,
-    instrument: "piano" | "bass",
-  ) {
-    const context = this.context;
-    const bus = this.buses?.[instrument];
-    if (!context || !bus || !notes.length) return;
-    const partials =
-      instrument === "piano"
-        ? [
-            [1, 1],
-            [2, 0.34],
-            [3, 0.13],
-            [4, 0.045],
-          ]
-        : [
-            [1, 1],
-            [2, 0.22],
-            [3, 0.055],
-          ];
-    notes.forEach((note) => {
-      const envelope = context.createGain();
-      envelope.connect(bus);
-      const seconds = clamp(duration, 0.07, instrument === "piano" ? 5 : 2.5);
-      const amplitude =
-        velocity *
-        (instrument === "piano" ? 0.09 / Math.sqrt(notes.length) : 0.17);
-      envelope.gain.setValueAtTime(0.0001, time);
-      envelope.gain.exponentialRampToValueAtTime(
-        Math.max(0.0002, amplitude),
-        time + 0.008,
-      );
-      envelope.gain.exponentialRampToValueAtTime(
-        Math.max(0.0001, amplitude * 0.23),
-        time + Math.max(0.03, seconds * 0.65),
-      );
-      envelope.gain.exponentialRampToValueAtTime(0.0001, time + seconds + 0.08);
-      let remaining = partials.length;
-      for (const [harmonic, amplitude] of partials) {
-        const oscillator = context.createOscillator();
-        const gain = context.createGain();
-        oscillator.type = "sine";
-        oscillator.frequency.setValueAtTime(midiHz(note) * harmonic, time);
-        gain.gain.value = amplitude;
-        oscillator.connect(gain);
-        gain.connect(envelope);
-        this.register(oscillator, () => {
-          gain.disconnect();
-          if (--remaining === 0) envelope.disconnect();
-        });
-        oscillator.start(time);
-        oscillator.stop(time + seconds + 0.1);
-      }
-    });
-  }
-  private noiseHit(
-    time: number,
-    kind: "ride" | "snare" | "brush",
-    velocity: number,
-  ) {
-    const context = this.context;
-    const bus = this.buses?.drums;
-    if (!context || !bus || !this.noise) return;
-    const source = context.createBufferSource();
-    const filter = context.createBiquadFilter();
-    const gain = context.createGain();
-    source.buffer = this.noise;
-    filter.type = kind === "ride" ? "highpass" : "bandpass";
-    filter.frequency.value =
-      kind === "ride" ? 5400 : kind === "snare" ? 1900 : 2900;
-    filter.Q.value = kind === "snare" ? 0.7 : 0.5;
-    const duration = kind === "brush" ? 0.34 : kind === "ride" ? 0.19 : 0.1;
-    const amplitude =
-      velocity * (kind === "ride" ? 0.045 : kind === "brush" ? 0.055 : 0.08);
-    gain.gain.setValueAtTime(0.0001, time);
-    gain.gain.exponentialRampToValueAtTime(
-      Math.max(0.0002, amplitude),
-      time + 0.003,
-    );
-    gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(bus);
-    this.register(source, () => {
-      filter.disconnect();
-      gain.disconnect();
-    });
-    source.start(time, 0, duration + 0.01);
-    source.stop(time + duration + 0.01);
-  }
-  private kick(time: number, velocity: number) {
-    const context = this.context;
-    const bus = this.buses?.drums;
-    if (!context || !bus) return;
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.frequency.setValueAtTime(95, time);
-    oscillator.frequency.exponentialRampToValueAtTime(42, time + 0.1);
-    gain.gain.setValueAtTime(Math.max(0.0002, velocity * 0.22), time);
-    gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.13);
-    oscillator.connect(gain);
-    gain.connect(bus);
-    this.register(oscillator, () => gain.disconnect());
-    oscillator.start(time);
-    oscillator.stop(time + 0.14);
   }
   private countClick(time: number, accent: boolean) {
     const context = this.context;
@@ -619,7 +709,12 @@ export class JazzBacking {
     gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.055);
     oscillator.connect(gain);
     gain.connect(bus);
-    this.register(oscillator, () => gain.disconnect());
+    this.sources.add(oscillator);
+    oscillator.onended = () => {
+      this.sources.delete(oscillator);
+      oscillator.disconnect();
+      gain.disconnect();
+    };
     oscillator.start(time);
     oscillator.stop(time + 0.06);
   }
@@ -630,22 +725,35 @@ export class JazzBacking {
     transposeDelta: number,
   ) {
     const cfg = this.config!;
-    if (event.instrument === "piano" || event.instrument === "bass") {
-      if (cfg[event.instrument] <= 0 || cfg.volume <= 0) return;
-      this.tone(
+    if (!this.instruments || cfg.volume <= 0) return;
+    const duration = (event.duration * 60) / bpm;
+    if (event.instrument === "piano" && cfg.piano > 0)
+      this.instruments.playPiano(
         event.notes.map((note) => note + transposeDelta),
         time,
-        (event.duration * 60) / bpm,
+        duration,
         event.velocity,
-        event.instrument,
       );
-    } else if (cfg.drums > 0 && cfg.volume > 0) {
-      if (event.instrument === "kick") this.kick(time, event.velocity);
-      else this.noiseHit(time, event.instrument, event.velocity);
-    }
+    else if (event.instrument === "bass" && cfg.bass > 0)
+      this.instruments.playBass(
+        bassRegister(event.notes[0] + transposeDelta),
+        time,
+        duration,
+        event.velocity,
+      );
+    else if (
+      cfg.drums > 0 &&
+      event.instrument !== "piano" &&
+      event.instrument !== "bass"
+    )
+      this.instruments.playDrum(event.instrument, time, event.velocity);
   }
   stop(): void {
     this.generation++;
+    this.loading?.abort();
+    this.loading = null;
+    this.instruments?.dispose();
+    this.instruments = null;
     if (this.interval !== null) clearInterval(this.interval);
     this.interval = null;
     this.callbacks.forEach(clearTimeout);
@@ -668,7 +776,6 @@ export class JazzBacking {
     this.master = null;
     this.compressor = null;
     this.buses = null;
-    this.noise = null;
     if (context && context.state !== "closed")
       void context.close().catch(() => undefined);
   }

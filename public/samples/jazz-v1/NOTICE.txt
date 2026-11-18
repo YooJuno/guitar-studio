@@ -1,0 +1,43 @@
+JUNO STUDIO acoustic jazz sample bank v1
+
+Recorded acoustic instruments; no original-song recordings or commercial
+backing tracks. The adjacent manifest.json lists exact upstream commits,
+source URLs, byte counts and SHA-256 hashes.
+
+1. Splendid Grand Piano
+   Public-domain Steinway recordings originally released by AKAI in the
+   early 2000s, according to the sample distributor's provenance statement.
+   SFZ reconstruction and sample fixes: kinwie. Web conversion: smpldsnds.
+   Selected PP and Mp recordings are included, without the SFZ engine.
+   https://github.com/smpldsnds/sfzinstruments-splendid-grand-piano
+   https://github.com/smpldsnds/sfzinstruments-splendid-grand-piano/blob/009793ebf849aee57f9a213aeaf8f2d1e2178f4f/README.md
+
+2. Otto Rubner pizzicato double bass
+   1958 Otto Rubner double bass recorded and mapped by D. Smolken.
+   Copyright 2013 D. Smolken. Distributed under CC0 1.0 Universal.
+   Web conversion: smpldsnds. Medium-dynamic recordings and two variations
+   per sampled root are included.
+   https://github.com/sfzinstruments/dsmolken.double-bass
+   https://github.com/smpldsnds/sfzinstruments-dsmolken-double-bass
+   License: /licenses/CC0-1.0.txt
+
+3. Guigui acoustic drum set / Sonic Pi samples
+   Acoustic ride cymbal (soft/hard), closed/pedal hi-hat, soft bass drum,
+   and soft snare recorded by Freesound contributor menegass.
+   Distributed as CC0 1.0 Universal. Sonic Pi trimmed these recordings;
+   smpldsnds converted them to AAC/M4A and OGG/Opus.
+   https://github.com/sonic-pi-net/sonic-pi/blob/main/etc/samples/README.md
+   https://github.com/smpldsnds/sonic-pi-samples
+   Original samples:
+   https://freesound.org/people/menegass/sounds/100057/ (ride soft)
+   https://freesound.org/people/menegass/sounds/100056/ (ride hard)
+   https://freesound.org/people/menegass/sounds/100053/ (closed hi-hat)
+   https://freesound.org/people/menegass/sounds/100054/ (pedal hi-hat)
+   https://freesound.org/people/menegass/sounds/100052/ (soft bass drum)
+   https://freesound.org/people/menegass/sounds/100059/ (soft snare)
+   License: https://creativecommons.org/publicdomain/zero/1.0/
+
+Distributed audio files are copied from the named converted sources.
+During playback JUNO STUDIO normalizes peaks, limits long decay tails,
+transposes recorded roots and applies note envelopes. No brush sweep is
+included: quiet acoustic snare/hi-hat is used for ballads.

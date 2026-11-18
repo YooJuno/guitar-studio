@@ -6,12 +6,12 @@
   font-synthesis: none;
   --accent: #b9ee83;
   --ink: #232721;
-  --muted: #858a80;
+  --muted: #555e4e;
   --border: #e6e8df;
   --paper: #fff;
   --soft: #f1f3ec;
   --radius: 16px;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
 }
 * {
@@ -87,7 +87,7 @@ h2 {
   font-size: 21px;
 }
 h3 {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 650;
   display: flex;
   align-items: center;
@@ -96,7 +96,7 @@ h3 {
 }
 small,
 .small {
-  font-size: 11px;
+  font-size: 14px;
 }
 svg {
   flex-shrink: 0;
@@ -106,10 +106,10 @@ svg {
   color: var(--muted);
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: 1.5px;
   font-weight: 650;
-  color: #8a9082;
+  color: #46513f;
 }
 .studio-shell {
   display: flex;
@@ -156,8 +156,8 @@ svg {
 .brand small {
   display: block;
   font-family: "DM Sans", sans-serif;
-  font-size: 8px;
-  color: #959b8e;
+  font-size: 14px;
+  color: #46513f;
   letter-spacing: 2px;
   font-weight: 500;
   margin-top: 8px;
@@ -173,8 +173,8 @@ svg {
   gap: 13px;
   border-radius: 10px;
   padding: 14px 14px;
-  color: #848a7e;
-  font-size: 13px;
+  color: #46513f;
+  font-size: 14px;
   transition: 0.15s;
   text-align: left;
 }
@@ -189,7 +189,7 @@ svg {
 }
 .nav-english {
   font-family: "DM Sans", sans-serif;
-  font-size: 10px;
+  font-size: 14px;
   margin-left: auto;
   opacity: 0.6;
 }
@@ -202,14 +202,14 @@ svg {
   align-items: center;
   padding: 17px 12px;
   border-bottom: 1px solid var(--border);
-  font-size: 11px;
-  color: #636c5b;
+  font-size: 14px;
+  color: #46513f;
 }
 .sidebar-tuning small {
   font-family: "DM Mono", monospace;
   display: block;
-  color: #a0a698;
-  font-size: 9px;
+  color: #46513f;
+  font-size: 14px;
   letter-spacing: 0.4px;
   margin-top: 5px;
 }
@@ -222,8 +222,8 @@ svg {
 .sidebar-links > span {
   margin-left: auto;
   letter-spacing: 1px;
-  font-size: 8px;
-  color: #a8ad9f;
+  font-size: 14px;
+  color: #46513f;
 }
 .main-shell {
   margin-left: 236px;
@@ -231,7 +231,7 @@ svg {
   min-width: 0;
 }
 .topbar {
-  height: 84px;
+  height: 64px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -243,9 +243,9 @@ svg {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 9px;
+  font-size: 14px;
   letter-spacing: 1.8px;
-  color: #8c9384;
+  color: #46513f;
   font-weight: 600;
 }
 .status-dot {
@@ -267,7 +267,7 @@ svg {
 }
 .sync-state {
   display: flex;
-  color: #859078;
+  color: #46513f;
 }
 .sync-state.warning {
   color: #a27b42;
@@ -285,7 +285,7 @@ svg {
   align-items: center;
   gap: 9px;
   background: white;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 550;
 }
 .google-login:hover {
@@ -305,11 +305,11 @@ svg {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 650;
 }
 .account-name {
-  font-size: 11px;
+  font-size: 14px;
   max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -319,13 +319,13 @@ svg {
   padding: 5px;
 }
 .icon-button {
-  width: 31px;
-  height: 31px;
+  width: 38px;
+  height: 38px;
   border-radius: 7px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #7d8674;
+  color: #46513f;
 }
 .icon-button:hover {
   background: #ecf0e5;
@@ -339,8 +339,8 @@ svg {
 }
 .page-index {
   font-family: "DM Mono", monospace;
-  font-size: 9px;
-  color: #969d8c;
+  font-size: 14px;
+  color: #46513f;
   letter-spacing: 1.2px;
   display: block;
   margin-bottom: 10px;
@@ -349,21 +349,21 @@ svg {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 9px;
+  font-size: 14px;
   letter-spacing: 1.5px;
-  color: #8b957e;
+  color: #46513f;
   padding-top: 26px;
 }
 .tuning-chip {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 11px;
+  font-size: 14px;
   border: 1px solid #dfe4d5;
   border-radius: 7px;
   padding: 8px 11px;
   background: #fafbf7;
-  color: #67725b;
+  color: #46513f;
 }
 .tuning-chip:hover {
   background: #e9f1df;
@@ -371,7 +371,7 @@ svg {
 main {
   max-width: 1476px;
   margin: 0 auto;
-  padding: 37px 46px 110px;
+  padding: 28px 40px 80px;
 }
 .tool-content {
   min-height: 520px;
@@ -406,8 +406,8 @@ main {
   border: 1px solid #e4e7df;
   border-radius: 6px;
   font-family: "DM Mono", "Noto Sans KR", monospace;
-  font-size: 10px;
-  color: #858e79;
+  font-size: 14px;
+  color: #46513f;
   background: #fafbf7;
   white-space: nowrap;
 }
@@ -424,7 +424,7 @@ main {
   border-radius: 8px;
   min-height: 39px;
   padding: 10px 15px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 550;
   transition:
     background 0.15s,
@@ -454,8 +454,8 @@ main {
   height: 16px;
 }
 label {
-  font-size: 11px;
-  color: #79826d;
+  font-size: 14px;
+  color: #46513f;
   font-weight: 500;
   display: block;
 }
@@ -471,7 +471,7 @@ input:not([type="range"]):not([type="checkbox"]) {
   border-radius: 7px;
   padding: 10px 12px;
   background: #fff;
-  font-size: 12px;
+  font-size: 14px;
   color: #394332;
 }
 select {
@@ -507,8 +507,8 @@ input:hover {
   flex: 1;
   white-space: nowrap;
   padding: 8px 12px;
-  color: #8c9580;
-  font-size: 11px;
+  color: #46513f;
+  font-size: 14px;
 }
 .segmented button.active {
   background: white;
@@ -522,15 +522,15 @@ input:hover {
 .workspace-footer {
   display: flex;
   justify-content: space-between;
-  color: #b0b6a6;
+  color: #46513f;
   font-family: "DM Mono", monospace;
-  font-size: 8px;
+  font-size: 14px;
   letter-spacing: 1.5px;
   margin-top: 30px;
 }
 .footer-dot {
   padding: 0 8px;
-  color: #c4cbb9;
+  color: #46513f;
 }
 .mini-metronome {
   position: fixed;
@@ -548,7 +548,7 @@ input:hover {
   z-index: 10;
 }
 .mini-metro-label {
-  color: #758469;
+  color: #46513f;
   display: flex;
   padding: 5px;
 }
@@ -567,13 +567,13 @@ input:hover {
   display: none;
 }
 .mini-metronome > span {
-  font-size: 8px;
-  color: #9aa48b;
+  font-size: 14px;
+  color: #46513f;
   letter-spacing: 1px;
   margin-left: -4px;
 }
 .bpm-step {
-  color: #889479;
+  color: #46513f;
   font-size: 17px;
   width: 20px;
 }
@@ -593,8 +593,8 @@ input:hover {
   box-shadow: 0 0 0 2px #b9ee8340;
 }
 .mini-play {
-  width: 31px;
-  height: 31px;
+  width: 38px;
+  height: 38px;
   background: #e1edcf;
   color: #4f6939;
   border-radius: 7px;
@@ -608,7 +608,7 @@ input:hover {
 }
 kbd {
   font-family: inherit;
-  font-size: 9px;
+  font-size: 14px;
   border: 1px solid currentColor;
   border-radius: 4px;
   opacity: 0.45;
@@ -676,14 +676,14 @@ kbd {
   display: none;
 }
 .tempo-control span {
-  font-size: 10px;
-  color: #9aa58b;
+  font-size: 14px;
+  color: #46513f;
   letter-spacing: 3px;
   display: block;
 }
 .tempo-name {
-  font-size: 11px;
-  color: #91a17c;
+  font-size: 14px;
+  color: #46513f;
   letter-spacing: 1px;
   margin: 12px 0 25px;
 }
@@ -710,18 +710,18 @@ kbd {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  color: #8e9d7e;
+  color: #46513f;
   background: #f8faf4;
   font-family: "DM Mono", monospace;
   font-size: 16px;
 }
 .beat-light span {
-  font-size: 9px;
+  font-size: 14px;
   opacity: 0.6;
 }
 .beat-light.strength-2 {
   background: #e7f0db;
-  color: #6b874f;
+  color: #46513f;
 }
 .beat-light.strength-0 {
   border-style: dashed;
@@ -750,8 +750,8 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 10px;
-  color: #909b82;
+  font-size: 14px;
+  color: #46513f;
   margin-top: auto;
   padding-top: 24px;
 }
@@ -765,7 +765,7 @@ kbd {
   padding: 5px;
 }
 .subdivisions small {
-  font-size: 9px;
+  font-size: 14px;
   display: block;
   margin-top: 5px;
   font-weight: 400;
@@ -777,12 +777,12 @@ kbd {
   border-bottom: 1px solid var(--border);
   padding-bottom: 18px;
   margin-bottom: 20px;
-  font-size: 12px;
+  font-size: 14px;
   color: #58664a;
 }
 .toggle-row small {
   margin-left: 8px;
-  color: #a1ac92;
+  color: #46513f;
 }
 .toggle-row input {
   width: 16px;
@@ -802,7 +802,7 @@ kbd {
 .volume-row span {
   font-family: "DM Mono", monospace;
   width: 30px;
-  font-size: 9px;
+  font-size: 14px;
 }
 .volume-row + p {
   display: none;
@@ -832,13 +832,13 @@ kbd {
   text-align: left;
 }
 .preset-item span {
-  font-size: 12px;
+  font-size: 14px;
 }
 .preset-item small {
   display: block;
   font-family: "DM Mono", monospace;
-  font-size: 9px;
-  color: #9ca78d;
+  font-size: 14px;
+  color: #46513f;
   margin-top: 3px;
 }
 .full-width > p:last-child {
@@ -848,8 +848,8 @@ kbd {
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 10px;
-  color: #879776;
+  font-size: 14px;
+  color: #46513f;
   margin: -15px 0 15px;
 }
 .toast {
@@ -861,7 +861,7 @@ kbd {
   color: #f6faf0;
   border-radius: 9px;
   padding: 12px 15px;
-  font-size: 12px;
+  font-size: 14px;
   display: flex;
   align-items: center;
   gap: 20px;
@@ -894,19 +894,19 @@ kbd {
 }
 .help-sections h3 {
   margin-bottom: 10px;
-  font-size: 13px;
+  font-size: 14px;
 }
 .help-sections p {
-  font-size: 11px;
-  color: #79866c;
+  font-size: 14px;
+  color: #46513f;
   line-height: 1.9;
   margin-bottom: 7px;
 }
 .help-links {
   display: flex;
   gap: 20px;
-  font-size: 11px;
-  color: #657d50;
+  font-size: 14px;
+  color: #46513f;
 }
 .spin {
   animation: spin 1.5s linear infinite;
@@ -1088,7 +1088,7 @@ kbd {
   }
   .nav-item > span:first-of-type {
     display: block;
-    font-size: 8px;
+    font-size: 14px;
     font-weight: 500;
   }
   .nav-item > svg {
@@ -1103,21 +1103,18 @@ kbd {
     padding: 0 20px;
   }
   .workspace-label {
-    font-size: 8px;
+    font-size: 14px;
     letter-spacing: 1.2px;
   }
   .topbar-actions {
     gap: 10px;
-  }
-  .help-button {
-    display: none;
   }
   .account-name {
     display: none;
   }
   .google-login {
     padding: 7px 9px;
-    font-size: 10px;
+    font-size: 14px;
   }
   .header-divider {
     display: none;
@@ -1133,11 +1130,11 @@ kbd {
     letter-spacing: -1px;
   }
   .page-index {
-    font-size: 8px;
+    font-size: 14px;
     margin-bottom: 8px;
   }
   .line-badge {
-    font-size: 8px;
+    font-size: 14px;
     padding-top: 20px;
   }
   .card {
@@ -1159,14 +1156,14 @@ kbd {
     left: 50%;
     width: max-content;
     max-width: calc(100% - 30px);
-    font-size: 11px;
+    font-size: 14px;
     gap: 12px;
   }
   .tool-content {
     min-height: 460px;
   }
   .workspace-footer {
-    font-size: 7px;
+    font-size: 14px;
     margin-top: 22px;
     letter-spacing: 1px;
   }
@@ -1176,6 +1173,7 @@ kbd {
   .metronome-layout > .stack {
     display: flex;
     gap: 15px;
+    align-items: stretch;
   }
   .metro-main {
     min-height: 460px;
@@ -1195,7 +1193,7 @@ kbd {
   }
   .metro-status {
     padding-top: 15px;
-    font-size: 9px;
+    font-size: 14px;
   }
   .preset-form {
     flex-wrap: wrap;
@@ -1208,7 +1206,7 @@ kbd {
     gap: 12px;
   }
   .tuning-chip {
-    font-size: 9px;
+    font-size: 14px;
     padding: 7px;
     gap: 6px;
   }
@@ -1231,37 +1229,12 @@ kbd {
     scroll-behavior: auto !important;
   }
 }
-.tuner-title-row > div:first-child {
-  display: none;
-}
-.tuner-title-row {
-  justify-content: flex-end;
-  margin-top: -6px;
-  margin-bottom: 20px;
-}
-.tuner-view label select,
-.tuner-view label input {
-  margin-top: 0;
-}
-.tuner-view .tuner-settings-content label select {
-  margin-top: 0;
-}
-.tuner-mode button {
-  font-size: 11px;
-}
-.tuner-start {
-  font-size: 11px;
-}
-
 .sync-state {
   padding: 0;
 }
 .sync-state:disabled {
   opacity: 1;
   cursor: default;
-}
-.tuner-mobile-start {
-  display: none;
 }
 .tuner-live-stop {
   display: flex;
@@ -1277,33 +1250,57 @@ kbd {
   background: #dceec9;
 }
 @media (max-width: 620px) {
-  .tuner-mobile-start {
-    display: inline-flex;
-    min-height: 37px;
-    padding: 7px 13px;
-    font-size: 11px;
-  }
-  .tuner-title-row {
-    justify-content: space-between;
-  }
-  .tuner-input-panel .tuner-start {
-    display: none;
-  }
-  .tuner-channel-select {
-    grid-column: 1/-1;
-  }
-  .tuner-note-area {
-    min-height: 145px;
-    padding: 17px 0 10px;
-  }
-  .tuner-pitch-note {
-    font-size: 82px;
-  }
-  .tuner-gauge {
-    margin-bottom: 9px;
-  }
   .tuner-live-stop {
-    padding: 5px 7px;
+    padding: 7px 9px;
     gap: 6px;
   }
+}
+
+label {
+  font-weight: 550;
+}
+select,
+input:not([type="range"]):not([type="checkbox"]) {
+  font-size: 16px;
+}
+.nav-item {
+  font-size: 15px;
+  color: #46513f;
+}
+.icon-button {
+  color: #46513f;
+}
+.topbar .status-dot {
+  width: 7px;
+  height: 7px;
+}
+.workspace-label:empty {
+  display: none;
+}
+.page-heading {
+  margin-bottom: 22px;
+}
+.segmented button {
+  font-size: 14px;
+}
+.help-sections p {
+  font-size: 15px;
+  color: #3e4936;
+  line-height: 1.7;
+}
+
+.round {
+  color: #46513f;
+}
+.beat-light.strength-0 {
+  opacity: 1;
+  color: #59614f;
+  background: #f7f7f2;
+}
+.beat-light span {
+  opacity: 1;
+}
+
+.topbar {
+  justify-content: flex-end;
 }

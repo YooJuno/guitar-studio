@@ -4,10 +4,10 @@ import {
   ChevronDown,
   ExternalLink,
   FileMusic,
+  Info,
   Play,
   Search,
   Upload,
-  Volume2,
   X,
 } from "lucide-react";
 import {
@@ -76,15 +76,6 @@ function FavoriteButton({
     </button>
   );
 }
-function TuningReadout({ strings }: { strings: number[] }) {
-  return (
-    <span className="music-tuning small muted">
-      현재 튜닝 <b>{strings.map((m) => noteName(m, false)).join(" · ")}</b>
-      <span>낮은 현 → 높은 현</span>
-    </span>
-  );
-}
-
 function savedSelections(
   favorites: string[],
   prefix: string,
@@ -159,11 +150,11 @@ function ChordDiagram({
             x2={x(i)}
             y1={top}
             y2={top + 4 * spacing}
-            stroke="#939b8b"
+            stroke="#687360"
             strokeWidth={Math.max(1, 2 - i * 0.16)}
           />
           {frets[i] < 0 ? (
-            <g stroke="#90958c" strokeWidth="1.6">
+            <g stroke="#46513f" strokeWidth="1.6">
               <path d={`M ${x(i) - 4} 43 l 8 8 M ${x(i) + 4} 43 l -8 8`} />
             </g>
           ) : frets[i] === 0 ? (
@@ -244,10 +235,6 @@ export function ChordsView({ strings, favorites, onFavorite }: MusicViewProps) {
   return (
     <div className="music-workspace">
       <section className="card music-controls">
-        <div className="section-heading">
-          <h3>코드 찾기</h3>
-          <TuningReadout strings={strings} />
-        </div>
         <div className="music-control-line">
           <RootSelect value={root} onChange={setRoot} />
           <label>
@@ -315,19 +302,8 @@ export function ChordsView({ strings, favorites, onFavorite }: MusicViewProps) {
           />
         </div>
         <div className="music-diagram-grid">
-          {shapes.map((frets, i) => (
+          {shapes.map((frets) => (
             <figure key={frets.join(",")} className="music-shape">
-              <figcaption>
-                <span>POSITION {String(i + 1).padStart(2, "0")}</span>
-                <button
-                  className="icon-button"
-                  aria-label={`${name} ${i + 1}번 운지 듣기`}
-                  title="코드 듣기"
-                  onClick={() => void listen(frets)}
-                >
-                  <Volume2 size={18} />
-                </button>
-              </figcaption>
               <ChordDiagram
                 frets={frets}
                 strings={strings}
@@ -337,8 +313,10 @@ export function ChordsView({ strings, favorites, onFavorite }: MusicViewProps) {
               <button
                 className="button secondary music-listen"
                 onClick={() => void listen(frets)}
+                aria-label={`${name} ${arpeggio ? "아르페지오" : "코드"} 듣기`}
+                title={arpeggio ? "아르페지오 듣기" : "코드 듣기"}
               >
-                <Play size={14} /> {arpeggio ? "아르페지오 듣기" : "코드 듣기"}
+                <Play size={18} /> 듣기
               </button>
             </figure>
           ))}
@@ -347,7 +325,6 @@ export function ChordsView({ strings, favorites, onFavorite }: MusicViewProps) {
           <div className="music-empty">
             <FileMusic size={26} />
             <h3>이 튜닝의 운지 없음</h3>
-            <p>코드 종류 또는 튜닝을 바꿔보세요.</p>
           </div>
         )}
         {error && (
@@ -355,22 +332,11 @@ export function ChordsView({ strings, favorites, onFavorite }: MusicViewProps) {
             {error}
           </p>
         )}
-        <div className="music-diagram-legend">
-          <span>
-            <i className="note-dot root" />
-            루트
-          </span>
-          <span>
-            <i className="note-dot" />
-            코드 구성음
-          </span>
-          <span>○ 개방현</span>
-          <span>× 뮤트</span>
-          <span>숫자 = 프렛 번호</span>
-        </div>
       </section>
       <details className="music-help">
-        <summary>운지 안내</summary>
+        <summary title="운지 정보" aria-label="운지 정보">
+          <Info size={19} />
+        </summary>
         <p>
           현재 튜닝 기준 · 왼쪽이 낮은 현 · 원 안의 글자는 음이름. 손가락 번호는
           표시하지 않습니다.
@@ -393,7 +359,7 @@ function Fretboard({
   start: number;
   onPlay: (midi: number) => void;
 }) {
-  const height = 92 + strings.length * 43;
+  const height = 90 + (strings.length - 1) * 43;
   const x = (f: number) => 96 + f * 66;
   return (
     <div className="music-fret-scroll">
@@ -496,12 +462,6 @@ function Fretboard({
             })}
           </g>
         ))}
-        <text x="76" y={height - 7} className="fret-hint">
-          각 음을 눌러 들어보세요
-        </text>
-        <text x="923" y={height - 7} textAnchor="end" className="fret-hint">
-          높은 현 ↑ · 낮은 현 ↓
-        </text>
       </svg>
     </div>
   );
@@ -539,10 +499,6 @@ export function ScalesView({ strings, favorites, onFavorite }: MusicViewProps) {
   return (
     <div className="music-workspace">
       <section className="card music-controls">
-        <div className="section-heading">
-          <h3>모드 · 스케일 탐색</h3>
-          <TuningReadout strings={strings} />
-        </div>
         <div className="music-control-line">
           <RootSelect value={root} onChange={setRoot} />
           <label>
@@ -597,7 +553,6 @@ export function ScalesView({ strings, favorites, onFavorite }: MusicViewProps) {
       <section className="card music-scale-result">
         <div className="section-heading">
           <div>
-            <span className="eyebrow">{scale.english}</span>
             <h2>
               {pitchClasses[root]} {scale.name}
             </h2>
@@ -622,8 +577,8 @@ export function ScalesView({ strings, favorites, onFavorite }: MusicViewProps) {
           ))}
         </div>
         <div className="music-scale-actions">
-          <span className="small muted">
-            어울리는 코드 <b>{scale.chords}</b>
+          <span className="music-related-chords" title="어울리는 코드">
+            {scale.chords}
           </span>
           <button
             className="button secondary"
@@ -644,17 +599,7 @@ export function ScalesView({ strings, favorites, onFavorite }: MusicViewProps) {
           start={start}
           onPlay={(midi) => void listen([midi])}
         />
-        <div className="music-diagram-legend">
-          <span>
-            <i className="note-dot root" />
-            루트
-          </span>
-          <span>
-            <i className="note-dot" />
-            스케일 구성음
-          </span>
-          <span>지판은 높은 현이 위쪽입니다</span>
-        </div>
+
         {error && (
           <p className="music-error" role="alert">
             {error}
@@ -662,7 +607,9 @@ export function ScalesView({ strings, favorites, onFavorite }: MusicViewProps) {
         )}
       </section>
       <details className="music-help">
-        <summary>모드 정보</summary>
+        <summary title="모드 정보" aria-label="모드 정보">
+          <Info size={19} />
+        </summary>
         <p>{scale.description}</p>
         <p>지판의 음이름은 이명동음으로 간단히 표기합니다.</p>
       </details>
@@ -680,7 +627,7 @@ function Notation({ abc, transpose }: { abc: string; transpose: number }) {
     void import("abcjs")
       .then(({ renderAbc }) => {
         if (cancelled) return;
-        renderAbc(node, abc, {
+        renderAbc(node, abc.replace(/^[TCQ]:.*\n/gm, ""), {
           responsive: "resize",
           add_classes: true,
           visualTranspose: transpose,
@@ -813,7 +760,6 @@ export function JazzView({
       >
         <div className="section-heading music-library-heading">
           <h3>레퍼토리</h3>
-          <span className="small muted">{standards.length}곡</span>
         </div>
         <button
           type="button"
@@ -824,7 +770,7 @@ export function JazzView({
           title="곡 선택"
           onClick={() => setLibraryOpen((open) => !open)}
         >
-          <span>레퍼토리</span>
+          <FileMusic size={18} />
           <strong>{selected.title}</strong>
           <ChevronDown size={17} />
         </button>
@@ -876,16 +822,7 @@ export function JazzView({
                   aria-pressed={s.id === selectedId}
                 >
                   <strong>{s.title}</strong>
-                  <span>
-                    {s.key} <i>·</i> {s.style}
-                  </span>
-                  <small>
-                    {s.kind === "exercise"
-                      ? "오리지널 연습곡"
-                      : s.kind === "traditional"
-                        ? "전통 선율 악보"
-                        : `${s.form} · ${s.difficulty}`}
-                  </small>
+                  <span>{s.key}</span>
                 </button>
                 <FavoriteButton
                   saved={favorites.includes(`jazz:${s.id}`)}
@@ -914,28 +851,13 @@ export function JazzView({
       </section>
       <div className="stack music-score-column">
         <section className="card music-score-card">
-          <div className="section-heading">
-            <span className="eyebrow">
-              {selected.kind === "standard"
-                ? "JAZZ STANDARD"
-                : selected.kind === "traditional"
-                  ? "TRADITIONAL MELODY"
-                  : "ORIGINAL PRACTICE SCORE"}
-            </span>
+          <div className="section-heading music-score-heading">
+            <h2 className="music-song-title">{selected.title}</h2>
             <FavoriteButton
               saved={favorites.includes(`jazz:${selected.id}`)}
               onClick={() => onFavorite(`jazz:${selected.id}`)}
               label={selected.title}
             />
-          </div>
-          <h2 className="music-song-title">{selected.title}</h2>
-          <p className="music-composer">
-            {selected.composer} <span>· {selected.year}</span>
-          </p>
-          <div className="music-song-meta">
-            <span className="pill">{selected.style}</span>
-            <span>{selected.form}</span>
-            <span>{selected.difficulty}</span>
           </div>
           <JazzPractice
             key={selected.id}
@@ -946,42 +868,23 @@ export function JazzView({
             onActiveChange={onPlaybackActive}
             onTempo={onTempo}
           />
-          {selected.abc ? (
-            <>
-              <div className="music-score-label">
-                <FileMusic size={16} />
-                <span>
-                  {selected.kind === "exercise"
-                    ? "오리지널 연습곡 악보"
-                    : "전통 선율 · 새로 작성한 연습용 화성"}
-                </span>
-              </div>
-              <Notation abc={selected.abc} transpose={transpose} />
-            </>
-          ) : (
-            <div className="music-score-source">
-              <FileMusic size={25} />
-              <div>
-                <strong>정식 멜로디 악보</strong>
-                <span className="small muted">Hal Leonard</span>
-              </div>
+          {selected.abc && (
+            <Notation abc={selected.abc} transpose={transpose} />
+          )}
+          <div className="section-heading music-chart-heading">
+            <h3>코드 차트</h3>
+            {!selected.abc && (
               <a
-                className="button secondary"
+                className="button secondary music-score-link"
                 href={selected.scoreUrl}
                 target="_blank"
                 rel="noreferrer"
+                title={selected.scoreLabel}
+                aria-label={`${selected.title} 정식 악보 열기`}
               >
-                열기 <ExternalLink size={14} />
+                <FileMusic size={18} /> 악보 <ExternalLink size={15} />
               </a>
-            </div>
-          )}
-          <div className="section-heading music-chart-heading">
-            <h3>연습용 코드 차트</h3>
-            <span className="small muted">
-              {selected.abc
-                ? "클릭: 코드 듣기"
-                : "멜로디 없음 · 클릭: 코드 듣기"}
-            </span>
+            )}
           </div>
           <div className="music-charts">
             {selected.sections.map((section, sectionIndex) => (
@@ -1029,7 +932,15 @@ export function JazzView({
             ))}
           </div>
           <details className="music-help music-score-help">
-            <summary>곡 · 악보 정보</summary>
+            <summary title="곡·악보 정보" aria-label="곡·악보 정보">
+              <Info size={19} />
+            </summary>
+            <p>
+              {selected.composer} · {selected.year}
+            </p>
+            <p>
+              {selected.style} · {selected.form} · {selected.difficulty}
+            </p>
             <p>{selected.description}</p>
             <p>{selected.rightsNote}</p>
             <a
@@ -1102,11 +1013,7 @@ export function JazzView({
                 title={`${pdf.name} 악보 미리보기`}
               />
             </>
-          ) : (
-            <p className="small muted music-pdf-privacy">
-              브라우저에서만 열기 · 최대 20MB
-            </p>
-          )}
+          ) : null}
         </section>
       </div>
     </div>

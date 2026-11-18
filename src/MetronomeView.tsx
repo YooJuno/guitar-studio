@@ -47,10 +47,8 @@ export default function MetronomeView({
     <div className="metronome-layout">
       <section className="card metro-main">
         <div className="section-heading">
-          <span className="eyebrow">METRONOME</span>
           <span className="pill">
-            {c.beats}/{c.denominator} · {c.denominator === 8 ? "♪" : "♩"} ={" "}
-            {c.bpm}
+            {c.beats}/{c.denominator}
           </span>
         </div>
         <div className="tempo-control">
@@ -87,19 +85,6 @@ export default function MetronomeView({
             <Plus />
           </button>
         </div>
-        <p className="tempo-name">
-          {c.bpm < 60
-            ? "Largo"
-            : c.bpm < 76
-              ? "Adagio"
-              : c.bpm < 108
-                ? "Andante"
-                : c.bpm < 120
-                  ? "Moderato"
-                  : c.bpm < 168
-                    ? "Allegro"
-                    : "Presto"}
-        </p>
         <input
           className="tempo-slider"
           aria-label="템포 슬라이더"
@@ -137,7 +122,6 @@ export default function MetronomeView({
             title="탭 템포"
           >
             <Hand size={18} />
-            <span>Tap</span>
           </button>
           <button
             type="button"
@@ -152,15 +136,14 @@ export default function MetronomeView({
               <Play size={18} fill="currentColor" />
             )}
             {playing ? "정지" : "시작"}
-            <kbd>Space</kbd>
           </button>
         </div>
-        <div className="metro-status">
-          <span className={`status-dot ${playing ? "on" : ""}`} />
-          {playing
-            ? `${tick?.countIn ? "카운트인" : `${tick?.bar ?? 1} 마디`} · 현재 ${tick?.bpm ?? c.bpm} BPM`
-            : "대기"}
-        </div>
+        {playing && (
+          <div className="metro-status">
+            <span className="status-dot on" />
+            {`${tick?.countIn ? "카운트인" : `${tick?.bar ?? 1} 마디`} · ${tick?.bpm ?? c.bpm} BPM`}
+          </div>
+        )}
       </section>
       <div className="stack">
         <section className="card">
@@ -350,28 +333,27 @@ export default function MetronomeView({
           </button>
         </form>
         <div className="preset-list">
-          {presets.length ? (
-            presets.map((p, i) => (
-              <div className="preset-item" key={i}>
-                <button onClick={() => setConfig(p.config)}>
-                  <span>{p.name}</span>
-                  <small>
-                    {p.config.bpm} BPM · {p.config.beats}/{p.config.denominator}
-                  </small>
-                </button>
-                <button
-                  className="icon-button"
-                  onClick={() => removePreset(i)}
-                  aria-label={`${p.name} 삭제`}
-                  title="삭제"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            ))
-          ) : (
-            <span className="small muted">—</span>
-          )}
+          {presets.length
+            ? presets.map((p, i) => (
+                <div className="preset-item" key={i}>
+                  <button onClick={() => setConfig(p.config)}>
+                    <span>{p.name}</span>
+                    <small>
+                      {p.config.bpm} BPM · {p.config.beats}/
+                      {p.config.denominator}
+                    </small>
+                  </button>
+                  <button
+                    className="icon-button"
+                    onClick={() => removePreset(i)}
+                    aria-label={`${p.name} 삭제`}
+                    title="삭제"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              ))
+            : null}
         </div>
       </section>
     </div>

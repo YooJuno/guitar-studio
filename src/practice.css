@@ -1,448 +1,463 @@
 .jazz-practice {
-  border: 1px solid #dce5d2;
-  background: #f5f8ef;
-  border-radius: 12px;
-  padding: 15px 17px;
-  margin: 23px 0;
   position: sticky;
-  top: 12px;
+  top: 8px;
   z-index: 5;
-  box-shadow: 0 3px 15px #2f451108;
+  border: 1px solid #cbd5bf;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 0;
+  background: #f5f8ef;
   font-variant-numeric: tabular-nums;
+  color: #26301f;
 }
 .practice-topline {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  margin-bottom: 13px;
+  margin-bottom: 14px;
+  padding-right: 38px;
 }
 .practice-source {
   display: flex;
-  gap: 5px;
+  gap: 6px;
 }
 .practice-source button {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 9px;
-  font-size: 10px;
-  color: #919b83;
-  border-radius: 6px;
+  gap: 7px;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #46513f;
 }
 .practice-source button.selected {
-  color: #435c30;
-  background: #e5eed9;
+  color: #263f17;
+  background: #dcebcf;
 }
 .practice-status {
   font-family: "DM Mono", monospace;
-  font-size: 9px;
-  color: #8e9e7d;
+  font-size: 14px;
+  font-weight: 500;
+  color: #46513f;
   white-space: nowrap;
 }
 .practice-transport {
-  display: flex;
+  display: grid;
+  grid-template-columns: 44px 32px minmax(90px, 1fr) minmax(130px, 1fr) 40px;
   align-items: center;
-  gap: 9px;
-  flex-wrap: nowrap;
+  gap: 8px;
 }
 .practice-play {
-  width: 43px;
-  height: 43px;
+  width: 44px;
+  height: 44px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #2d3e23;
-  color: #d2f7af;
-  border-radius: 9px;
-  flex-shrink: 0;
+  background: #273b1d;
+  color: #e4ffd0;
 }
 .practice-play:hover {
-  background: #425632;
+  background: #3d542d;
 }
 .practice-play.is-playing {
   background: #b9ee83;
-  color: #344b22;
+  color: #263d16;
 }
 .practice-play:disabled {
-  background: #e7ecde;
-  color: #a6b396;
-  opacity: 1;
+  background: #e0e7d6;
+  color: #68745b;
 }
 .practice-restart {
-  color: #7d8b6c;
-  width: 25px;
+  width: 32px;
+  height: 40px;
+  color: #3d4a32;
 }
 .practice-bpm {
   display: flex;
   align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
-  margin-left: 3px;
+  justify-content: center;
+  gap: 2px;
 }
 .practice-bpm > button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 23px;
-  height: 27px;
-  color: #82946c;
+  width: 30px;
+  height: 40px;
+  color: #34462a;
 }
 .practice-bpm label {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  gap: 0;
 }
 .practice-bpm input {
+  width: 52px !important;
+  height: 31px;
   padding: 0 !important;
   margin: 0 !important;
   border: 0 !important;
+  border-radius: 3px !important;
   background: transparent !important;
   text-align: center;
-  border-radius: 2px !important;
-  width: 47px !important;
-  height: 25px;
   font-family: "DM Mono", monospace;
-  font-size: 21px !important;
-  color: #3e5130 !important;
+  font-size: 28px !important;
+  font-weight: 500;
+  color: #26301f !important;
 }
 .practice-bpm span {
-  font-family: "DM Mono", monospace;
-  font-size: 7px;
-  letter-spacing: 1.7px;
-  color: #9eac8f;
+  font-size: 14px;
+  font-weight: 500;
+  color: #46513f;
+  letter-spacing: 0;
 }
 .practice-key {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: auto;
-  gap: 2px;
+  gap: 0;
   min-width: 0;
 }
 .practice-key .icon-button {
-  width: 24px;
+  width: 32px;
+  height: 40px;
+  color: #34462a;
 }
 .practice-key-label {
-  font-size: 12px;
-  color: #52663f;
-  padding: 7px 1px;
+  font-size: 16px;
+  font-weight: 650;
+  color: #26301f;
+  padding: 7px 2px;
+  min-width: 75px;
   white-space: nowrap;
-  min-width: 65px;
 }
 .practice-loop {
-  margin-left: 3px;
-  color: #a0aa91;
-  border: 1px solid transparent;
+  width: 40px;
+  height: 40px;
+  color: #46513f;
+  border: 1px solid #cbd5bf;
 }
 .practice-loop.enabled {
-  color: #536f36;
-  border-color: #d0e1be;
-  background: #e5efd8;
+  background: #dcebcf;
+  border-color: #9db586;
+  color: #2d4b1b;
 }
 .practice-progress {
-  height: 2px;
-  border-radius: 2px;
+  height: 3px;
   overflow: hidden;
-  background: #e3ead8;
-  margin: 14px 0 10px;
+  border-radius: 2px;
+  margin: 16px 0 12px;
+  background: #d9e2cd;
 }
 .practice-progress > i {
   display: block;
   height: 100%;
-  background: #8faf6c;
+  background: #739856;
   transition: width 0.1s linear;
 }
 .practice-quick-controls {
   display: flex;
   align-items: center;
-  gap: 9px;
+  justify-content: space-between;
+  gap: 12px;
   flex-wrap: wrap;
 }
 .practice-loop-range {
   display: flex;
   align-items: center;
-  gap: 4px;
-  color: #8d9e7a;
+  gap: 6px;
+  color: #34462a;
 }
 .practice-loop-range select {
-  min-height: 24px !important;
-  padding: 2px 5px !important;
-  height: 24px;
+  width: 58px;
+  min-height: 36px !important;
+  height: 36px;
+  font-size: 16px !important;
+  padding: 4px 6px !important;
   font-family: "DM Mono", monospace;
-  font-size: 10px !important;
-  width: 47px;
-  background: #fbfdf8 !important;
-  border-color: #e0e7d6 !important;
+  color: #26301f;
+  background: #fff !important;
+  border-color: #c6d1b9 !important;
 }
 .practice-loop-range > span {
-  font-size: 10px;
-  color: #a0ad91;
-  padding: 0 2px;
-}
-.practice-loop-range > svg {
-  margin-right: 4px;
+  font-size: 14px;
+  color: #46513f;
 }
 .practice-style {
-  font-size: 10px !important;
-  min-height: 24px !important;
-  height: 24px;
-  padding: 2px 6px !important;
-  background: #fbfdf8 !important;
-  border-color: #e0e7d6 !important;
-  margin-left: auto;
-}
-.practice-quick-controls > .icon-button {
-  width: 23px;
-  height: 24px;
+  font-size: 14px !important;
+  min-height: 36px !important;
+  height: 36px;
+  padding: 4px 8px !important;
+  color: #26301f;
+  background: #fff !important;
+  border-color: #c6d1b9 !important;
 }
 .practice-settings {
-  margin-top: 10px;
-  border-top: 1px solid #e2e9d8;
-  padding-top: 9px;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 .practice-settings > summary {
+  position: absolute;
+  top: 14px;
+  right: 12px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  cursor: pointer;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   list-style: none;
-  width: max-content;
-  font-size: 9px;
-  color: #8e9d7c;
+  cursor: pointer;
+  color: #34462a;
+  border-radius: 7px;
 }
 .practice-settings > summary::-webkit-details-marker {
   display: none;
 }
+.practice-settings > summary:hover,
 .practice-settings[open] > summary {
-  color: #556d3d;
+  background: #dcebcf;
+  color: #263f17;
+}
+.practice-settings > summary > svg {
+  width: 19px;
+  height: 19px;
 }
 .practice-mixer {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
-  padding: 14px 0 10px;
+  padding: 18px 0 12px;
+  border-top: 1px solid #d3dec6;
+  margin-top: 14px;
 }
 .practice-mixer > label {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   min-width: 0;
 }
 .practice-mixer > label > button {
-  padding: 2px;
-  color: #7b9066;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 36px;
+  color: #34462a;
 }
 .practice-mixer > label > button.muted {
-  color: #b2bea4;
+  color: #68745b;
 }
 .practice-mixer input {
   width: 100%;
   min-width: 0;
-  height: 3px;
-  accent-color: #7c9f58;
+  height: 4px;
+  accent-color: #5d7e42;
 }
 .practice-countin {
   grid-column: 1/-1;
-  max-width: 160px;
+  max-width: 210px;
 }
 .practice-countin select {
-  padding: 3px 8px !important;
+  font-size: 14px !important;
+  min-height: 36px !important;
+  height: 36px;
+  padding: 4px 8px !important;
   margin: 0 !important;
-  font-size: 10px !important;
-  min-height: 28px !important;
-  height: 28px;
-  background: #fbfdf8 !important;
-  border-color: #e0e7d6 !important;
+  color: #26301f;
+  background: #fff !important;
+  border-color: #c6d1b9 !important;
 }
 .practice-sections {
   display: flex;
-  gap: 6px;
+  gap: 7px;
   flex-wrap: wrap;
-  padding-bottom: 6px;
 }
 .practice-sections button {
-  font-size: 8px;
-  border: 1px solid #dee7d3;
-  border-radius: 5px;
-  color: #849672;
   display: flex;
-  gap: 5px;
   align-items: center;
-  padding: 4px 7px;
-  background: #fafcf6;
+  gap: 6px;
+  min-height: 34px;
+  padding: 5px 9px;
+  font-size: 14px;
+  color: #34462a;
+  background: #fff;
+  border: 1px solid #c6d1b9;
+  border-radius: 6px;
 }
 .practice-sections button.selected {
-  background: #e2edd5;
-  border-color: #bfcfb0;
-  color: #607c44;
+  background: #dcebcf;
+  border-color: #9db586;
+  color: #2d4b1b;
 }
 .practice-bottom {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 .practice-master {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #96a684;
+  gap: 10px;
+  color: #34462a;
 }
 .practice-master input {
-  width: 75px;
-  height: 3px;
-  accent-color: #8ba574;
-}
-.practice-kind {
-  font-size: 7px;
-  letter-spacing: 1.2px;
-  color: #a3af95;
-  font-family: "DM Mono", monospace;
+  width: 110px;
+  height: 4px;
+  accent-color: #5d7e42;
 }
 .practice-rate select {
-  height: 34px;
-  min-height: 34px !important;
+  font-size: 16px !important;
+  min-height: 40px !important;
+  height: 40px;
+  padding: 5px 9px !important;
   margin: 0 !important;
-  padding: 4px 7px !important;
-  font-size: 12px !important;
-  background: #fbfdf8 !important;
-  border-color: #e0e7d6 !important;
   font-family: "DM Mono", monospace;
+  color: #26301f;
+  background: #fff !important;
+  border-color: #c6d1b9 !important;
 }
 .practice-file-panel {
-  margin-top: 13px;
+  margin-top: 14px;
 }
 .practice-file-input {
   display: none;
 }
 .practice-upload {
-  width: 100%;
-  min-height: 68px;
-  border: 1px dashed #cfddbf;
-  border-radius: 8px;
-  color: #8b9e77;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  font-size: 11px;
-  background: #f9fcf5;
+  gap: 10px;
+  width: 100%;
+  min-height: 62px;
+  border: 1px dashed #a8ba95;
+  border-radius: 8px;
+  color: #34462a;
+  background: #fbfdf8;
+  font-size: 15px;
+  font-weight: 600;
 }
 .practice-upload:hover {
-  background: #edf4e5;
-  color: #5d7645;
+  background: #e8f0df;
 }
 .practice-file-name {
   display: flex;
   align-items: center;
-  gap: 7px;
-  color: #7c9166;
-  font-size: 10px;
-  margin-bottom: 6px;
+  gap: 8px;
   min-width: 0;
+  font-size: 14px;
+  color: #34462a;
 }
 .practice-file-name > span {
   flex: 1;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .practice-file-name > .icon-button {
-  width: 23px;
-  height: 25px;
+  width: 34px;
+  height: 36px;
+  color: #34462a;
 }
 .practice-seek {
   display: block;
   width: 100%;
-  margin: 8px 0 14px;
-  accent-color: #82a760;
-  height: 3px;
+  height: 4px;
+  margin: 14px 0 18px;
+  accent-color: #5d7e42;
 }
 .practice-file-options {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 .practice-ab {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 .practice-ab > button {
-  color: #698254;
+  padding: 7px 9px;
+  border-radius: 6px;
+  min-height: 36px;
+  background: #e0ebd4;
+  color: #2d4b1b;
   font-family: "DM Mono", monospace;
-  font-size: 10px;
-  padding: 4px 6px;
-  background: #e7efdd;
-  border-radius: 4px;
+  font-size: 14px;
 }
 .practice-ab small {
-  font-size: 8px;
-  color: #92a480;
-  margin-left: 4px;
+  font-size: 14px;
+  color: #34462a;
+  margin-left: 6px;
 }
 .practice-ab > span {
-  color: #a9b79b;
-  font-size: 8px;
+  font-size: 14px;
+  color: #46513f;
 }
 .practice-original-key {
-  margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 8px !important;
-  color: #93a181;
+  gap: 7px;
+  margin-left: auto;
+  font-size: 14px !important;
+  color: #46513f;
 }
 .practice-original-key > select {
-  min-height: 25px !important;
-  height: 25px;
-  padding: 2px 5px !important;
-  font-size: 10px !important;
+  width: 58px;
+  min-height: 36px !important;
+  height: 36px;
   margin: 0 !important;
-  width: 46px;
-  background: #fbfdf8 !important;
-  border-color: #e0e7d6 !important;
+  padding: 4px 6px !important;
+  background: #fff !important;
+  border-color: #c6d1b9 !important;
+  font-size: 16px !important;
+  color: #26301f;
 }
 .practice-pitch {
   font-family: "DM Mono", monospace;
-  font-size: 8px;
-  color: #93a580;
+  font-size: 14px;
+  color: #46513f;
 }
 .practice-fallback {
   display: block;
-  font-size: 9px;
-  color: #a28a67;
-  margin-top: 10px;
+  margin-top: 12px;
+  color: #79512a;
+  font-size: 14px;
 }
 .practice-error {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 10px;
-  color: #a0694a;
-  border-top: 1px solid #e4dfcf;
-  padding-top: 10px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #d9cec0;
+  color: #8b3923;
+  font-size: 14px;
 }
 .practice-error > button {
-  margin-left: auto;
   display: flex;
-  padding: 2px;
-  color: #ae967c;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  color: #8b3923;
 }
 .music-bar.is-playing {
-  background: #e9f4dc !important;
-  box-shadow: inset 3px 0 0 #97bd70;
+  background: #e5f2d6 !important;
+  box-shadow: inset 3px 0 0 #74964e;
 }
 .music-bar.is-playing > small {
-  color: #6c8c4e;
+  color: #3d5e26;
 }
 .music-bar.is-playing button {
-  color: #47692d;
+  color: #23400e;
 }
 .music-score-card:has(.jazz-practice) {
   overflow: visible;
@@ -450,123 +465,123 @@
 @media (max-width: 1100px) {
   .practice-transport {
     gap: 5px;
-  }
-  .practice-key-label {
-    font-size: 11px;
-    min-width: 55px;
-  }
-  .practice-key .icon-button {
-    width: 20px;
+    grid-template-columns: 44px 28px minmax(90px, 1fr) minmax(120px, 1fr) 40px;
   }
   .practice-restart {
-    width: 21px;
+    width: 28px;
   }
-  .jazz-practice {
-    padding: 14px 12px;
-  }
-  .practice-bpm > button {
-    width: 19px;
-  }
-  .practice-play {
-    width: 37px;
-    height: 39px;
-  }
-  .practice-bpm {
-    margin-left: 0;
+  .practice-key .icon-button {
+    width: 28px;
   }
 }
 @media (max-width: 620px) {
   .jazz-practice {
-    top: 7px;
-    margin: 20px -6px;
-    padding: 13px 11px;
-    border-radius: 10px;
+    top: 6px;
+    margin: 18px -4px;
+    padding: 14px 12px;
+  }
+  .practice-topline {
+    gap: 8px;
+    padding-right: 36px;
+  }
+  .practice-source {
+    gap: 3px;
   }
   .practice-source button {
-    font-size: 9px;
-    padding: 5px 7px;
+    padding: 6px 8px;
   }
   .practice-status {
-    font-size: 8px;
+    font-size: 14px;
   }
   .practice-transport {
-    gap: 6px;
-  }
-  .practice-bpm > button {
-    width: 21px;
-  }
-  .practice-bpm input {
-    font-size: 20px !important;
-    width: 43px !important;
+    grid-template-columns: 44px minmax(0, 1fr) 40px;
+    gap: 7px;
   }
   .practice-play {
-    width: 39px;
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .practice-restart {
+    display: none;
+  }
+  .practice-bpm,
+  .practice-rate {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .practice-key {
+    grid-column: 1/-1;
+    grid-row: 2;
+    justify-content: center;
+  }
+  .practice-key .icon-button {
+    width: 40px;
     height: 40px;
   }
   .practice-key-label {
-    font-size: 11px;
-    min-width: 62px;
-  }
-  .practice-key .icon-button {
-    width: 23px;
-  }
-  .practice-restart {
-    width: 23px;
+    font-size: 17px;
+    min-width: 110px;
   }
   .practice-loop {
-    margin-left: 1px;
-    width: 28px;
-  }
-  .practice-mixer {
-    gap: 10px;
-  }
-  .practice-sections button {
-    font-size: 8px;
-  }
-  .practice-file-options {
-    gap: 6px;
-  }
-  .practice-original-key {
-    font-size: 8px !important;
-  }
-  .practice-ab > button {
-    padding: 4px;
-    font-size: 9px;
-  }
-  .practice-ab small {
-    margin-left: 2px;
-    font-size: 7px;
-  }
-  .practice-pitch {
-    font-size: 7px;
-  }
-}
-@media (max-width: 390px) {
-  .practice-key-label {
-    min-width: 53px;
-    font-size: 10px;
-  }
-  .practice-key .icon-button {
-    width: 18px;
-  }
-  .practice-transport {
-    gap: 3px;
+    grid-column: 3;
+    grid-row: 1;
   }
   .practice-bpm > button {
-    width: 18px;
-  }
-  .practice-restart {
-    display: none;
-  }
-  .practice-play {
     width: 36px;
+    height: 40px;
+  }
+  .practice-bpm input {
+    font-size: 28px !important;
+    width: 56px !important;
+  }
+  .practice-rate select {
+    width: 100%;
+  }
+  .practice-quick-controls {
+    gap: 8px;
+  }
+  .practice-loop-range {
+    gap: 4px;
+  }
+  .practice-loop-range select {
+    width: 52px;
+  }
+  .practice-style {
+    padding: 4px 6px !important;
+    max-width: 110px;
+  }
+  .practice-master input {
+    width: 110px;
+  }
+  .practice-settings > summary {
+    top: 13px;
+    right: 10px;
+  }
+  .practice-mixer {
+    gap: 8px;
+  }
+  .practice-mixer > label {
+    gap: 4px;
+  }
+  .practice-file-options {
+    gap: 10px;
+  }
+  .practice-original-key {
+    margin-left: 0;
   }
   .practice-pitch {
-    display: none;
+    margin-left: auto;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .practice-progress > i {
     transition: none;
   }
+}
+
+.practice-topline {
+  flex-wrap: wrap;
+}
+.practice-status {
+  margin-left: auto;
 }

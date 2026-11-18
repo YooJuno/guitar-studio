@@ -36,7 +36,6 @@ import {
 import { defaultMetronome, Metronome } from "./lib/metronome";
 import type { MetronomeConfig, Tick } from "./lib/metronome";
 import { tunings } from "./data/tunings";
-import { noteName } from "./lib/theory";
 import { stopNotes } from "./lib/synth";
 import TunerView from "./TunerView";
 import MetronomeView from "./MetronomeView";
@@ -189,7 +188,6 @@ export default function App() {
   playingRef.current = playing;
   const [tick, setTick] = useState<Tick | null>(null);
   const [tunerActive, setTunerActive] = useState(false);
-  const [practiceActive, setPracticeActive] = useState(false);
   const metro = useRef(new Metronome());
   const help = useRef<HTMLDialogElement>(null);
   const key = user ? `juno-studio:user:${user.uid}` : "juno-studio:guest";
@@ -419,7 +417,6 @@ export default function App() {
       });
   }, []);
   const onPlaybackActive = useCallback((active: boolean) => {
-    setPracticeActive(active);
     if (active) {
       metro.current.stop();
       playingRef.current = false;
@@ -493,7 +490,6 @@ export default function App() {
           </span>
           <span>
             juno<span className="brand-light">studio</span>
-            <small>GUITAR WORKSPACE</small>
           </span>
         </a>
         <nav aria-label="도구">
@@ -507,20 +503,10 @@ export default function App() {
             >
               <n.icon size={20} strokeWidth={1.65} />
               <span>{n.title}</span>
-              <span className="nav-english">{n.english}</span>
             </button>
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="sidebar-tuning">
-            <Guitar size={16} />
-            <span>
-              {prefs.customStrings ? "Custom" : activeTuning.name}
-              <small>
-                {strings.map((n) => noteName(n, false)).join(" · ")}
-              </small>
-            </span>
-          </div>
           <div className="sidebar-links">
             <a
               className="icon-button"
@@ -540,18 +526,11 @@ export default function App() {
             >
               <CircleHelp size={18} />
             </button>
-            <span>JUNO / 01</span>
           </div>
         </div>
       </aside>
       <div className="main-shell">
         <header className="topbar">
-          <div className="workspace-label">
-            <span
-              className={`status-dot ${tunerActive || playing || practiceActive ? "on" : ""}`}
-            />
-            <span>WORKSPACE</span>
-          </div>
           <div className="topbar-actions">
             {tunerActive && tab !== "tuner" && (
               <button
@@ -661,16 +640,9 @@ export default function App() {
         <main id="main-content">
           <div className="page-heading">
             <div>
-              <span className="page-index">
-                {String(nav.findIndex((n) => n.id === tab) + 1).padStart(
-                  2,
-                  "0",
-                )}{" "}
-                / {current.english.toUpperCase()}
-              </span>
               <h1>{current.title}</h1>
             </div>
-            {tab !== "tuner" && tab !== "metronome" && (
+            {(tab === "chords" || tab === "scales") && (
               <button
                 className="tuning-chip"
                 onClick={() => navigate("tuner")}
@@ -680,11 +652,6 @@ export default function App() {
                 {prefs.customStrings ? "Custom" : activeTuning.name}
                 <SlidersHorizontal size={13} />
               </button>
-            )}
-            {tab === "tuner" && (
-              <span className="line-badge">
-                <Headphones size={14} /> MIC / LINE
-              </span>
             )}
           </div>
           {!hydrated && (
@@ -747,13 +714,6 @@ export default function App() {
               )}
             </Suspense>
           </div>
-          <footer className="workspace-footer">
-            <span>JUNO STUDIO</span>
-            <span>
-              {strings.length} STRINGS <span className="footer-dot">·</span> A4{" "}
-              {prefs.a4} Hz
-            </span>
-          </footer>
         </main>
         {tab !== "metronome" && tab !== "jazz" && tab !== "tuner" && (
           <div className="mini-metronome">
