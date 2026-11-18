@@ -385,7 +385,6 @@ export function ScalesView({ strings, favorites, onFavorite }: MusicViewProps) {
   const [root, setRoot] = useState(0);
   const [scaleId, setScaleId] = useState("ionian");
   const [range, setRange] = useState(0);
-  const [panel, setPanel] = useState<"board" | "tones">("board");
   const compact = useSyncExternalStore(subscribeFretboard, isCompactFretboard);
   const starts = compact ? [0, 5, 10, 15, 19] : [0, 5, 12];
   const start = starts.findLast((value) => value <= range) ?? 0;
@@ -476,77 +475,39 @@ export function ScalesView({ strings, favorites, onFavorite }: MusicViewProps) {
       </section>
       <section className="card music-scale-result">
         <div className="section-heading">
-          <div>
-            <h2>
-              {pitchClasses[root]} {scale.name}
-            </h2>
-          </div>
-          <FavoriteButton
-            saved={favorites.includes(favoriteId)}
-            onClick={() => onFavorite(favoriteId)}
-            label={`${pitchClasses[root]} ${scale.name}`}
-          />
-        </div>
-        <div className="music-scale-actions">
-          <div className="panel-tabs" role="group" aria-label="스케일 표시">
+          <h2>
+            {pitchClasses[root]} {scale.name}
+          </h2>
+          <div className="music-scale-header-actions">
             <button
               type="button"
-              aria-pressed={panel === "board"}
-              onClick={() => setPanel("board")}
+              className="icon-button"
+              aria-label="스케일 듣기"
+              title="스케일 듣기"
+              onClick={() =>
+                void listen(
+                  [...scale.intervals, 12].map((i) => 48 + root + i),
+                  true,
+                )
+              }
             >
-              지판
+              <Play size={18} />
             </button>
-            <button
-              type="button"
-              aria-pressed={panel === "tones"}
-              onClick={() => setPanel("tones")}
-            >
-              구성음
-            </button>
+            <FavoriteButton
+              saved={favorites.includes(favoriteId)}
+              onClick={() => onFavorite(favoriteId)}
+              label={`${pitchClasses[root]} ${scale.name}`}
+            />
           </div>
-          <button
-            className="button secondary"
-            aria-label="스케일 듣기"
-            onClick={() =>
-              void listen(
-                [...scale.intervals, 12].map((i) => 48 + root + i),
-                true,
-              )
-            }
-          >
-            <Play size={16} /> 듣기
-          </button>
         </div>
-        {panel === "board" ? (
-          <Fretboard
-            strings={strings}
-            root={root}
-            pitches={pitches}
-            start={start}
-            compact={compact}
-            onPlay={(midi) => void listen([midi])}
-          />
-        ) : (
-          <div className="music-scale-detail">
-            <div className="music-scale-tones">
-              {pitches.map((n, i) => (
-                <button
-                  key={n}
-                  className={i === 0 ? "tonic" : ""}
-                  onClick={() => void listen([48 + root + scale.intervals[i]])}
-                  aria-label={`${scale.formula.split(" ")[i]}도 ${pitchClasses[n]} 듣기`}
-                >
-                  <small>{scale.formula.split(" ")[i]}</small>
-                  <strong>{pitchClasses[n]}</strong>
-                </button>
-              ))}
-            </div>
-            <span className="music-related-chords" title="어울리는 코드">
-              {scale.chords}
-            </span>
-            <p>{scale.description}</p>
-          </div>
-        )}
+        <Fretboard
+          strings={strings}
+          root={root}
+          pitches={pitches}
+          start={start}
+          compact={compact}
+          onPlay={(midi) => void listen([midi])}
+        />
         {error && (
           <p className="music-error" role="alert">
             {error}

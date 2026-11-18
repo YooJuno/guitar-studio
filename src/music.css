@@ -197,57 +197,14 @@
 .music-scale-result h2 {
   font-size: 27px;
 }
-.music-scale-tones {
-  display: flex;
-  gap: 9px;
-  flex-wrap: wrap;
-}
-.music-scale-tones > button {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-  min-width: 62px;
-  min-height: 78px;
-  border: 1px solid #e2e7d9;
-  border-radius: 9px;
-  background: #f8faf5;
-  color: #344329;
-  cursor: pointer;
-  padding: 9px 12px;
-}
-.music-scale-tones > button:hover {
-  border-color: #46513f;
-  background: #eff7e6;
-}
-.music-scale-tones > button.tonic {
-  background: #e6f5d5;
-  border-color: #46513f;
-}
-.music-scale-tones small {
-  font-size: 14px;
-  color: #46513f;
-}
-.music-scale-tones strong {
-  font-size: 21px;
-  font-weight: 500;
-}
-.music-scale-actions {
+.music-scale-header-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  flex-wrap: wrap;
-  margin: 22px 0 10px;
+  gap: 4px;
 }
-.music-scale-actions b {
-  font-weight: 500;
-  color: #46513f;
-  margin-left: 8px;
-}
-.music-scale-actions .button {
-  font-size: 14px;
+.music-scale-header-actions .icon-button {
+  width: 44px;
+  height: 44px;
 }
 .music-fret-scroll {
   overflow-x: auto;
@@ -655,20 +612,6 @@
   .music-scale-result h2 {
     font-size: 23px;
   }
-  .music-scale-tones {
-    gap: 7px;
-  }
-  .music-scale-tones > button {
-    min-width: 46px;
-    min-height: 64px;
-    padding: 8px 11px;
-  }
-  .music-scale-tones strong {
-    font-size: 18px;
-  }
-  .music-scale-actions > .small {
-    font-size: 14px;
-  }
   .music-jazz-layout {
     grid-template-columns: 1fr;
   }
@@ -761,9 +704,6 @@
   border-top: 1px solid #e9eddf;
   margin-top: 22px;
   padding-top: 14px;
-}
-.music-scale-tones {
-  margin-top: 23px;
 }
 .music-control-line label select {
   margin-top: 0;
@@ -929,21 +869,6 @@
   font-size: 14px;
   color: #46513f;
 }
-.music-scale-tones small {
-  font-size: 14px;
-  color: #46513f;
-}
-.music-scale-tones strong {
-  font-size: 24px;
-  color: #222b20;
-}
-.music-related-chords {
-  font-size: 16px;
-  color: #46513f;
-}
-.music-scale-actions .button {
-  font-size: 14px;
-}
 .music-fretboard {
   min-width: 960px;
 }
@@ -1089,10 +1014,6 @@
   .music-bar button {
     font-size: 15px;
   }
-  .music-scale-tones > button {
-    min-width: 54px;
-    min-height: 76px;
-  }
 }
 @media (max-width: 500px) {
   .music-library .music-song-list {
@@ -1205,12 +1126,6 @@
     width: 42px;
     height: 42px;
   }
-  .music-scale-actions {
-    display: flex;
-    justify-content: space-between;
-    gap: 6px;
-    margin-top: 0;
-  }
   .music-fret-scroll {
     margin-top: 8px;
   }
@@ -1221,22 +1136,6 @@
   .music-fretboard.is-compact {
     min-width: 0;
     max-height: min(40dvh, 310px);
-  }
-  .music-scale-detail {
-    display: grid;
-    gap: 10px;
-    margin-top: 10px;
-  }
-  .music-scale-detail .music-scale-tones {
-    gap: 5px;
-  }
-  .music-scale-detail .music-scale-tones > button {
-    min-height: 56px;
-    min-width: 44px;
-    gap: 2px;
-  }
-  .music-scale-detail p {
-    max-width: 64ch;
   }
   .music-jazz-layout {
     align-items: start;

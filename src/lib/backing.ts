@@ -1,6 +1,6 @@
 import { parseJazzChord, transposeChord } from "./jazz";
 import { JazzInstruments } from "./instruments";
-import { claimAudioSession } from "./audio-session";
+import { claimAudioSession, resumeAudioContext } from "./audio-session";
 import type { JazzDrum, JazzInstrumentOutputs } from "./instruments";
 
 export interface BackingConfig {
@@ -509,7 +509,7 @@ export class JazzBacking {
     try {
       const context = new AudioContext({ latencyHint: "interactive" });
       this.context = context;
-      await this.resumeContext(context, loading.signal);
+      await resumeAudioContext(context, loading.signal);
       if (generation !== this.generation) {
         if (context.state !== "closed") await context.close();
         return;
@@ -528,7 +528,7 @@ export class JazzBacking {
       // that the context is still running several seconds later.
       this.instruments = instruments;
       if (context.state !== "running")
-        await this.resumeContext(context, loading.signal);
+        await resumeAudioContext(context, loading.signal);
       if (generation !== this.generation || loading.signal.aborted) {
         instruments.dispose();
         if (context.state !== "closed") await context.close();
@@ -658,46 +658,6 @@ export class JazzBacking {
       this.stop();
       throw error;
     }
-  }
-
-  private resumeContext(
-    context: AudioContext,
-    signal: AbortSignal,
-  ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      let finished = false;
-      const finish = (error?: unknown) => {
-        if (finished) return;
-        finished = true;
-        clearTimeout(timeout);
-        signal.removeEventListener("abort", cancel);
-        if (error) reject(error);
-        else resolve();
-      };
-      const cancel = () =>
-        finish(new DOMException("재생 준비가 취소되었습니다.", "AbortError"));
-      const timeout = setTimeout(
-        () =>
-          finish(
-            new Error(
-              "오디오 출력을 시작하지 못했습니다. 재생 버튼을 다시 눌러 주세요.",
-            ),
-          ),
-        4000,
-      );
-      if (signal.aborted) {
-        cancel();
-        return;
-      }
-      signal.addEventListener("abort", cancel, { once: true });
-      try {
-        // Invoke inside the initiating click, rather than deferring resume to a
-        // timer: mobile browsers require the user activation at this call.
-        context.resume().then(() => finish(), finish);
-      } catch (error) {
-        finish(error);
-      }
-    });
   }
 
   /** Current post-master graph RMS; this cannot detect an OS-muted speaker. */

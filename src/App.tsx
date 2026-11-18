@@ -191,7 +191,6 @@ export default function App() {
   const [toast, setToast] = useState("");
   const [playing, setPlaying] = useState(false);
   const playingRef = useRef(false);
-  playingRef.current = playing;
   const [tick, setTick] = useState<Tick | null>(null);
   const [tunerActive, setTunerActive] = useState(false);
   const [metro] = useState(() => new Metronome());
@@ -204,6 +203,12 @@ export default function App() {
   const activeTuning =
     tunings.find((t) => t.id === prefs.tuningId) ?? tunings[0];
   const strings = prefs.customStrings ?? activeTuning.strings;
+  const stopMetro = useCallback(() => {
+    metro.stop();
+    playingRef.current = false;
+    setPlaying(false);
+    setTick(null);
+  }, [metro]);
 
   useEffect(() => {
     let disposed = false;
@@ -249,9 +254,7 @@ export default function App() {
     setReady(false);
     setCloudAllowed(false);
     setSync(user ? "loading" : "local");
-    metro.stop();
-    setPlaying(false);
-    setTick(null);
+    stopMetro();
     stopNotes();
     const cached = readLocal(key);
     setPrefs(cached);
@@ -293,7 +296,7 @@ export default function App() {
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [authKnown, user?.uid, key, retryLoad]);
+  }, [authKnown, user?.uid, key, retryLoad, stopMetro]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -355,13 +358,9 @@ export default function App() {
     [],
   );
   useEffect(() => {
-    const stop = () => {
-      metro.stop();
-      setPlaying(false);
-    };
-    window.addEventListener("pagehide", stop);
-    return () => window.removeEventListener("pagehide", stop);
-  }, []);
+    window.addEventListener("pagehide", stopMetro);
+    return () => window.removeEventListener("pagehide", stopMetro);
+  }, [stopMetro]);
   useEffect(() => {
     metro.config = prefs.metronome;
   }, [prefs.metronome]);
@@ -408,25 +407,18 @@ export default function App() {
         "rampBy",
         "timerMinutes",
       ];
-      if (structural.some((k) => k in patch)) {
-        metro.stop();
-        setPlaying(false);
-        setTick(null);
-      }
+      if (structural.some((k) => k in patch)) stopMetro();
       setPrefs((p) => ({
         ...p,
         metronome: cleanMetro({ ...p.metronome, ...patch }),
       }));
     },
-    [markPending],
+    [markPending, stopMetro],
   );
   const toggleMetro = useCallback(() => {
     if (!readyRef.current) return;
     if (playingRef.current) {
-      playingRef.current = false;
-      metro.stop();
-      setPlaying(false);
-      setTick(null);
+      stopMetro();
       return;
     }
     playingRef.current = true;
@@ -438,26 +430,23 @@ export default function App() {
           // The visual beat displays do not change on subdivisions.
           if (next.sub === 0) setTick(next);
         },
-        () => {
-          playingRef.current = false;
-          setPlaying(false);
+        (reason) => {
+          stopMetro();
+          if (reason === "interrupted")
+            setToast("메트로놈 소리가 중단됐습니다. 다시 시작해 주세요.");
         },
       )
       .catch(() => {
-        playingRef.current = false;
-        setPlaying(false);
-        setToast("오디오를 시작하지 못했습니다.");
+        stopMetro();
+        setToast("메트로놈 소리를 시작하지 못했습니다. 다시 눌러 주세요.");
       });
-  }, []);
+  }, [metro, stopMetro]);
   const onPlaybackActive = useCallback((active: boolean) => {
     if (active) {
-      metro.stop();
-      playingRef.current = false;
-      setPlaying(false);
-      setTick(null);
+      stopMetro();
       stopNotes();
     }
-  }, []);
+  }, [stopMetro]);
   useEffect(() => {
     function keyboard(e: KeyboardEvent) {
       if (
@@ -711,8 +700,11 @@ export default function App() {
                         : "메트로놈 시작 (Space)"
                     }
                     aria-label={playing ? "메트로놈 정지" : "메트로놈 시작"}
+                    aria-busy={playing && !tick}
                   >
-                    {playing ? (
+                    {playing && !tick ? (
+                      <LoaderCircle size={14} className="spin" />
+                    ) : playing ? (
                       <Square size={13} fill="currentColor" />
                     ) : (
                       <Play size={14} fill="currentColor" />

@@ -5,6 +5,7 @@ import {
   Minus,
   Plus,
   Hand,
+  LoaderCircle,
   Volume2,
   Timer,
   Trash2,
@@ -35,6 +36,7 @@ export default function MetronomeView({
   const [panel, setPanel] = useState<"rhythm" | "timer" | "presets">("rhythm");
   const taps = useRef<number[]>([]);
   const presetName = useRef<HTMLInputElement>(null);
+  const starting = playing && !tick;
   function tap() {
     const now = performance.now();
     if (now - (taps.current.at(-1) ?? 0) > 3000) taps.current = [];
@@ -122,9 +124,12 @@ export default function MetronomeView({
             className="button primary play-large"
             onClick={toggle}
             aria-label={playing ? "메트로놈 정지" : "메트로놈 시작"}
+            aria-busy={starting}
             title="Space"
           >
-            {playing ? (
+            {starting ? (
+              <LoaderCircle size={18} className="spin" />
+            ) : playing ? (
               <Square size={18} fill="currentColor" />
             ) : (
               <Play size={18} fill="currentColor" />
@@ -133,7 +138,9 @@ export default function MetronomeView({
           </button>
           {playing && (
             <span className="metro-status">
-              {`${tick?.countIn ? "카운트인" : `${tick?.bar ?? 1}마디`} · ${tick?.bpm ?? c.bpm}`}
+              {tick
+                ? `${tick.countIn ? "카운트인" : `${tick.bar}마디`} · ${tick.bpm}`
+                : "오디오 준비 중"}
             </span>
           )}
         </div>

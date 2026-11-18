@@ -42,6 +42,7 @@ class Clock {
   >();
   contexts: FakeContext[] = [];
   resumeError: Error | null = null;
+  resumeState = "running";
   pendingResume: (() => void) | null = null;
   deferResume = false;
   set(fn: () => void, delay = 0, interval: number | null = null) {
@@ -161,16 +162,17 @@ class FakeGain {
 }
 class FakeContext {
   state = "suspended";
+  frozenTime: number | undefined;
   destination = {};
   starts: { time: number; at: number; voice: FakeVoice }[] = [];
   voices: FakeVoice[] = [];
   constructor(public clock: Clock) {}
   get currentTime() {
-    return this.clock.time / 1000;
+    return this.frozenTime ?? this.clock.time / 1000;
   }
   resume() {
     if (this.clock.resumeError) return Promise.reject(this.clock.resumeError);
-    this.state = "running";
+    this.state = this.clock.resumeState;
     if (this.clock.deferResume)
       return new Promise<void>((resolve) => {
         this.clock.pendingResume = resolve;
@@ -368,6 +370,68 @@ test("stop during context resume and resume rejection both release the audio con
   );
   assert.equal(clock.contexts[1].state, "closed");
   assert.equal(clock.tasks.size, 0);
+});
+
+test("a blocked resume times out and completing it later cannot restart audio", async (t) => {
+  const clock = new Clock();
+  t.after(clock.install());
+  clock.deferResume = true;
+  const metronome = new Metronome();
+  const blocked = metronome.start(
+    () => assert.fail("blocked audio must not tick"),
+    () => assert.fail("failed startup should reject"),
+  );
+  const resolveObsoleteResume = clock.pendingResume;
+  clock.advance(4000);
+  await assert.rejects(blocked, /오디오 출력을 시작하지 못했습니다/);
+  assert.equal(clock.contexts[0].state, "closed");
+  assert.equal(clock.tasks.size, 0);
+
+  clock.deferResume = false;
+  const beats: number[] = [];
+  await metronome.start((tick) => beats.push(tick.beat), () => {});
+  resolveObsoleteResume?.();
+  clock.advance(750);
+  assert.deepEqual(beats, [0, 1]);
+  assert.equal(clock.contexts[0].starts.length, 0);
+  metronome.stop();
+});
+
+test("resume must leave the browser audio context running", async (t) => {
+  const clock = new Clock();
+  t.after(clock.install());
+  clock.resumeState = "interrupted";
+  const metronome = new Metronome();
+  await assert.rejects(
+    metronome.start(() => assert.fail("audio never ran"), () => {}),
+    /오디오 출력이 시작되지 않았습니다/,
+  );
+  assert.equal(clock.contexts[0].state, "closed");
+  assert.equal(clock.tasks.size, 0);
+});
+
+test("an interrupted or frozen audio clock clears playback and stops once", async (t) => {
+  const clock = new Clock();
+  t.after(clock.install());
+  const metronome = new Metronome();
+  for (const state of ["interrupted", "running"]) {
+    const stops: (string | undefined)[] = [];
+    const beats: number[] = [];
+    await metronome.start(
+      (tick) => beats.push(tick.beat),
+      (reason) => stops.push(reason),
+    );
+    const context = clock.contexts.at(-1)!;
+    clock.advance(650);
+    assert.ok(context.starts.length > 1);
+    context.frozenTime = context.currentTime;
+    context.state = state;
+    clock.advance(5000);
+    assert.deepEqual(beats, [0]);
+    assert.deepEqual(stops, ["interrupted"]);
+    assert.equal(context.state, "closed");
+    assert.equal(clock.tasks.size, 0);
+  }
 });
 
 test("volume zero is silent and invalid stored tempo cannot cause a scheduling loop", async (t) => {

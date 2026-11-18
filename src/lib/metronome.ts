@@ -1,4 +1,4 @@
-import { claimAudioSession } from "./audio-session";
+import { claimAudioSession, resumeAudioContext } from "./audio-session";
 
 export type BeatStrength = 0 | 1 | 2;
 export interface MetronomeConfig {
@@ -90,6 +90,8 @@ function safeConfig(config: MetronomeConfig): MetronomeConfig {
 export class Metronome {
   private context: AudioContext | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
+  private clockWatch: ReturnType<typeof setInterval> | null = null;
+  private startup: AbortController | null = null;
   private visualTimers = new Set<ReturnType<typeof setTimeout>>();
   private voices = new Set<OscillatorNode>();
   private nextTime = 0;
@@ -102,23 +104,29 @@ export class Metronome {
     accents: [...defaultMetronome.accents],
   };
 
-  async start(onTick: (tick: Tick) => void, onStop: () => void) {
+  async start(
+    onTick: (tick: Tick) => void,
+    onStop: (reason?: "interrupted") => void,
+  ) {
     this.stop();
     const generation = ++this.generation;
     this.releaseSession = claimAudioSession("playback");
+    const startup = new AbortController();
+    this.startup = startup;
     try {
-      const context = new AudioContext();
+      const context = new AudioContext({ latencyHint: "interactive" });
       this.context = context;
-      await context.resume();
-      if (generation !== this.generation) {
-        if (context.state !== "closed") await context.close();
-        return;
-      }
+      await resumeAudioContext(context, startup.signal);
+      if (generation !== this.generation) return;
+      this.startup = null;
+      if (context.state !== "running")
+        throw new Error("오디오 출력이 시작되지 않았습니다.");
       this.nextTime = context.currentTime + 0.08;
       this.startedAt = this.nextTime;
       this.step = 0;
       const schedule = () => {
         if (this.context !== context || generation !== this.generation) return;
+        if (context.state !== "running") return;
         const cfg = safeConfig(this.config);
         const deadline =
           cfg.timerMinutes > 0
@@ -159,9 +167,11 @@ export class Metronome {
             () => {
               this.visualTimers.delete(timer);
               // Do not flash stale queued visual beats after a suspended tab resumes.
+              const delay = context.currentTime - scheduledAt;
               if (
                 generation === this.generation &&
-                context.currentTime - scheduledAt < 0.15
+                context.state === "running" &&
+                delay >= -0.02 && delay < 0.15
               )
                 onTick(tick);
             },
@@ -174,8 +184,23 @@ export class Metronome {
       };
       schedule();
       this.timer = setInterval(schedule, 25);
+      let previousTime = context.currentTime;
+      this.clockWatch = setInterval(() => {
+        if (generation !== this.generation) return;
+        const time = context.currentTime;
+        if (
+          (typeof document === "undefined" || !document.hidden) &&
+          (context.state !== "running" || time <= previousTime)
+        ) {
+          this.stop();
+          onStop("interrupted");
+          return;
+        }
+        previousTime = time;
+      }, 1500);
     } catch (error) {
-      if (generation === this.generation) this.stop();
+      if (generation !== this.generation) return;
+      this.stop();
       throw error;
     }
   }
@@ -224,10 +249,14 @@ export class Metronome {
 
   stop() {
     this.generation++;
+    this.startup?.abort();
+    this.startup = null;
     this.releaseSession?.();
     this.releaseSession = null;
     if (this.timer !== null) clearInterval(this.timer);
     this.timer = null;
+    if (this.clockWatch !== null) clearInterval(this.clockWatch);
+    this.clockWatch = null;
     this.visualTimers.forEach(clearTimeout);
     this.visualTimers.clear();
     this.voices.forEach((voice) => {
