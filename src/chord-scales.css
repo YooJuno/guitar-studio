@@ -1,0 +1,117 @@
+.chord-scale-dialog {
+  width: min(410px, calc(100% - 24px));
+  max-height: calc(100dvh - 20px);
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--paper);
+  color: var(--ink);
+  overscroll-behavior: contain;
+}
+.chord-scale-dialog::backdrop {
+  background: #17210d6b;
+}
+.chord-scale-head,
+.chord-scale-selection,
+.chord-scale-board-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.chord-scale-head {
+  margin-bottom: 8px;
+}
+.chord-scale-head h2 {
+  flex: 1;
+  font-size: 21px;
+}
+.chord-scale-head h2 span {
+  margin-left: 3px;
+  color: var(--muted);
+  font-size: 15px;
+}
+.chord-scale-dialog .icon-button {
+  width: 44px;
+  height: 44px;
+}
+.chord-scale-dialog select {
+  min-height: 40px;
+  margin: 0;
+  padding: 4px 7px;
+  font-size: 16px;
+}
+.chord-scale-selection > select {
+  flex: 1;
+  background: #f4f8ef;
+  font-weight: 650;
+}
+.chord-scale-selection > button {
+  border: 1px solid var(--border);
+}
+.chord-scale-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 9px 0 7px;
+}
+.chord-scale-notes > span {
+  padding: 3px 6px;
+  min-width: 27px;
+  text-align: center;
+  border-radius: 5px;
+  background: #f0f2eb;
+  font-size: 14px;
+}
+.chord-scale-notes > .is-chord-tone,
+.chord-tone-legend > i {
+  background: #d4e9ba;
+  color: #24351b;
+}
+.chord-scale-board-heading {
+  justify-content: space-between;
+}
+.chord-tone-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+}
+.chord-tone-legend > i {
+  width: 10px;
+  height: 10px;
+  border: 1px solid #89ad68;
+  border-radius: 50%;
+}
+.chord-scale-dialog .music-fretboard {
+  max-height: min(43dvh, 312px);
+}
+.chord-scale-dialog .music-error {
+  margin-top: 8px;
+}
+.chord-scale-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3c4e30;
+  border-radius: 7px;
+  padding: 5px 8px;
+  min-height: 42px;
+  background: #edf4e5;
+}
+.chord-result-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+@media (max-width: 380px) {
+  .chord-scale-trigger > span {
+    display: none;
+  }
+  .chord-scale-trigger {
+    min-width: 38px;
+    justify-content: center;
+  }
+}

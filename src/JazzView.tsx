@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   Bookmark,
   ChevronDown,
@@ -15,13 +8,14 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { midiToFrequency } from "./lib/theory";
-import { playNotes, stopNotes } from "./lib/synth";
+import { stopNotes } from "./lib/synth";
 import { standards } from "./data/standards";
 import type { Standard } from "./data/standards";
 import { parseJazzChord, transposeChord } from "./lib/jazz";
 import JazzPractice from "./JazzPractice";
 import FavoriteButton from "./FavoriteButton";
+import ChordScaleDialog from "./ChordScaleDialog";
+import type { ChordScaleContext } from "./lib/chord-scales";
 import type { MusicViewProps } from "./MusicViews";
 import "./music.css";
 
@@ -67,6 +61,7 @@ function Notation({ abc, transpose }: { abc: string; transpose: number }) {
 }
 
 export default function JazzView({
+  strings,
   favorites,
   onFavorite,
   onTempo,
@@ -76,6 +71,10 @@ export default function JazzView({
   const libraryRef = useRef<HTMLElement>(null);
   const libraryToggle = useRef<HTMLButtonElement>(null);
   const [scoreOpen, setScoreOpen] = useState(false);
+  const [inspected, setInspected] = useState<{
+    symbol: string;
+    context: ChordScaleContext;
+  } | null>(null);
   const scoreId = useId();
   const [panel, setPanel] = useState<"chart" | "score" | "pdf">("chart");
   const libraryId = useId();
@@ -173,20 +172,23 @@ export default function JazzView({
       setError("파일을 열지 못했습니다. 다른 PDF를 선택해 주세요.");
     }
   }
-  const hear = useCallback(async (chord: string) => {
-    setError("");
-    try {
-      const parsed = parseJazzChord(chord);
-      if (!parsed) return;
-      const chordMidis = parsed.intervals.map(
-        (interval) => 48 + parsed.root + interval,
-      );
-      if (parsed.bass !== parsed.root) chordMidis.unshift(36 + parsed.bass);
-      await playNotes(chordMidis.map((midi) => midiToFrequency(midi)));
-    } catch {
-      setError("코드 소리를 재생하지 못했습니다. 오디오 출력을 확인해 주세요.");
-    }
-  }, []);
+  function inspectChord(symbol: string, bar: number, chordIndex: number) {
+    if (!parseJazzChord(symbol)) return;
+    const remaining = chart.flatMap((section) => section.bars).slice(bar - 1);
+    const nextChord = remaining
+      .flatMap(({ chords }, index) =>
+        index === 0 ? chords.slice(chordIndex + 1) : chords,
+      )
+      .find((candidate) => candidate !== symbol && parseJazzChord(candidate));
+    setInspected({
+      symbol,
+      context: {
+        nextChord,
+        key: transposeChord(selected.key, transpose),
+        modal: selected.style === "Modal",
+      },
+    });
+  }
   return (
     <div className="music-jazz-layout">
       <section
@@ -405,8 +407,11 @@ export default function JazzView({
                                   {chords.map((chord, index) => (
                                     <button
                                       key={index}
-                                      aria-label={`${chord} 코드 듣기`}
-                                      onClick={() => void hear(chord)}
+                                      aria-label={`${chord} 스케일 보기`}
+                                      aria-haspopup="dialog"
+                                      onClick={() =>
+                                        inspectChord(chord, number, index)
+                                      }
                                     >
                                       {chord}
                                     </button>
@@ -502,6 +507,13 @@ export default function JazzView({
           </p>
         )}
       </section>
+      {inspected && (
+        <ChordScaleDialog
+          {...inspected}
+          strings={strings}
+          onClose={() => setInspected(null)}
+        />
+      )}
     </div>
   );
 }

@@ -182,6 +182,44 @@ export const scales: Scale[] = [
     description: "반음과 온음을 번갈아 쌓아 도미넌트 텐션을 만듭니다.",
     chords: "7♭9 · 13♭9",
   },
+  {
+    id: "whole-half-diminished",
+    name: "디미니시드 · 온음–반음",
+    english: "Whole–half diminished",
+    intervals: [0, 2, 3, 5, 6, 8, 9, 11],
+    formula: "1 2 ♭3 4 ♭5 ♭6 𝄫7 7",
+    description: "온음부터 시작해 반음과 번갈아 진행합니다.",
+    chords: "dim · dim7",
+  },
+  {
+    id: "locrian-natural-2",
+    name: "로크리안 ♮2",
+    english: "Locrian ♮2",
+    intervals: [0, 2, 3, 5, 6, 8, 10],
+    formula: "1 2 ♭3 4 ♭5 ♭6 ♭7",
+    description:
+      "로크리안의 단2도를 장2도로 바꾼 멜로딕 마이너의 6번째 모드입니다.",
+    chords: "m7♭5 · m9♭5",
+  },
+  {
+    id: "phrygian-dominant",
+    name: "프리지안 도미넌트",
+    english: "Phrygian dominant",
+    intervals: [0, 1, 4, 5, 7, 8, 10],
+    formula: "1 ♭9 3 4 5 ♭13 ♭7",
+    description:
+      "하모닉 마이너의 5번째 모드로, 단조로 가는 도미넌트에 쓸 수 있습니다.",
+    chords: "7♭9 · 7♭13",
+  },
+  {
+    id: "lydian-augmented",
+    name: "리디안 어그멘티드",
+    english: "Lydian augmented",
+    intervals: [0, 2, 4, 6, 8, 9, 11],
+    formula: "1 2 3 ♯4 ♯5 6 7",
+    description: "리디안의 완전5도를 증5도로 올린 스케일입니다.",
+    chords: "maj7♯5 · aug",
+  },
 ];
 export function getScale(root: number, scaleId: string): number[] {
   const scale = scales.find(

@@ -17,6 +17,8 @@ Preset pitches are encoded as MIDI numbers, low to high, with concert A4=440 Hz 
 - [Ableton: Seventh chords](https://learningmusic.ableton.com/advanced-topics/seventh-chords.html) — chord construction reference.
 - [Berklee PULSE: All scales and arpeggios, bass clef](https://pulse.berklee.edu/content/practice/pdfs/PR_All_Scales_Arp_Bass_Clef.pdf) — modal scale notation reference.
 - [Texas A&M Open Digital Publishing: Modes](https://odp.library.tamu.edu/stepstomusictheory/chapter/modes/) — modal scale relationships and altered degrees.
+- [Gary Burton, Berklee Online: Jazz Scales](https://online.berklee.edu/takenote/jazz-improvisation-10-scales/) — common chord-scale choices and surrounding harmony.
+- [Music Theory for the 21st-Century Classroom: Chord-Scale Relationships](https://musictheory.pugetsound.edu/mt21c/HowToDetermineChord-ScaleRelationships.html) — chord-scale examples for altered, extended and diminished chords.
 
 Fingerings are generated from pitch classes for the selected tuning. They are compact candidate voicings, not a transcription of a published chord dictionary. A four-fret search window limits hand span; users can choose a different position. Enharmonic note labels are simplified for fretboard readability, so they do not substitute for conventional key-specific notation.
 
