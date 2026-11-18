@@ -52,10 +52,11 @@ export default function ChordScaleDialog({
   }
 
   if (!chord) return null;
+  const hasSlashBass = chord.bass !== chord.root;
   const chordMidis = chord.intervals.map(
     (interval) => 48 + chord.root + interval,
   );
-  if (chord.bass !== chord.root) chordMidis.unshift(36 + chord.bass);
+  if (hasSlashBass) chordMidis.unshift(36 + chord.bass);
   const chordTones = [...new Set(chordMidis.map((midi) => midi % 12))];
   const pitches = scale
     ? scale.intervals.map((interval) => (chord.root + interval) % 12)
@@ -142,6 +143,12 @@ export default function ChordScaleDialog({
           </span>
         ))}
       </div>
+      {scale && (
+        <p className="chord-scale-reason" aria-live="polite">
+          <strong>{hasSlashBass ? "코드톤·베이스음 포함" : "코드톤 포함"}</strong>
+          {" · "}{scale.reason}
+        </p>
+      )}
       <div className="chord-scale-board-heading">
         <span className="chord-tone-legend">
           <i />
