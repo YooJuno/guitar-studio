@@ -6,6 +6,7 @@ import {
   normalizeTrackOptions,
 } from "../src/lib/track.ts";
 import type { TrackEnvironment, TrackState } from "../src/lib/track.ts";
+import { claimAudioSession } from "../src/lib/audio-session.ts";
 
 class FakeAudio extends EventTarget {
   duration = 120;
@@ -395,4 +396,52 @@ test("file limits and decoding errors do not leak a selected file", async () => 
   await rejected;
   assert.deepEqual(h.revoked, h.urls);
   h.player.dispose();
+});
+
+test("track playback leases survive capture and release on pause, end, replacement and error", async () => {
+  const navigator = globalThis.navigator;
+  const previous = Object.getOwnPropertyDescriptor(navigator, "audioSession");
+  const session = { type: "auto" };
+  Object.defineProperty(navigator, "audioSession", {
+    configurable: true,
+    value: session,
+  });
+  const h = harness();
+  let releaseCapture: (() => void) | null = null;
+  try {
+    await h.player.load(file(), () => {});
+    releaseCapture = claimAudioSession("capture");
+    await h.player.play();
+    assert.equal(session.type, "play-and-record");
+    releaseCapture();
+    releaseCapture = null;
+    assert.equal(
+      session.type,
+      "playback",
+      "the local track keeps its own playback lease",
+    );
+    h.player.pause();
+    assert.equal(session.type, "auto");
+    await h.player.play();
+    assert.equal(session.type, "playback");
+    h.audios[0].paused = true;
+    h.audios[0].ended = true;
+    h.audios[0].dispatchEvent(new Event("ended"));
+    assert.equal(session.type, "auto", "natural end releases music intent");
+    await h.player.play();
+    await h.player.load(file("next.mp3"), () => {});
+    assert.equal(
+      session.type,
+      "auto",
+      "replacing a playing file releases old intent",
+    );
+    await h.player.play();
+    h.processors.at(-1)!.dispatchEvent(new Event("processorerror"));
+    assert.equal(session.type, "auto", "DSP failure releases music intent");
+  } finally {
+    releaseCapture?.();
+    h.player.dispose();
+    if (previous) Object.defineProperty(navigator, "audioSession", previous);
+    else Reflect.deleteProperty(navigator, "audioSession");
+  }
 });

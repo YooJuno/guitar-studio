@@ -1,5 +1,6 @@
 import { parseJazzChord, transposeChord } from "./jazz";
 import { JazzInstruments } from "./instruments";
+import { claimAudioSession } from "./audio-session";
 import type { JazzDrum, JazzInstrumentOutputs } from "./instruments";
 
 export interface BackingConfig {
@@ -470,9 +471,12 @@ export class JazzBacking {
   private sources = new Set<AudioScheduledSourceNode>();
   private master: GainNode | null = null;
   private compressor: DynamicsCompressorNode | null = null;
+  private analyser: AnalyserNode | null = null;
+  private outputSamples = new Float32Array(1024);
   private buses: Record<"piano" | "bass" | "drums", GainNode> | null = null;
   private instruments: BackingRenderer | null = null;
   private loading: AbortController | null = null;
+  private releaseSession: (() => void) | null = null;
   private generation = 0;
   private bar = 0;
   private chorus = 1;
@@ -499,17 +503,18 @@ export class JazzBacking {
     if (!cfg.bars.length) throw new Error("재생할 마디가 없습니다.");
     this.config = cfg;
     const generation = ++this.generation;
-    const context = new AudioContext({ latencyHint: "interactive" });
-    this.context = context;
+    this.releaseSession = claimAudioSession("playback");
+    const loading = new AbortController();
+    this.loading = loading;
     try {
-      await context.resume();
+      const context = new AudioContext({ latencyHint: "interactive" });
+      this.context = context;
+      await this.resumeContext(context, loading.signal);
       if (generation !== this.generation) {
         if (context.state !== "closed") await context.close();
         return;
       }
       this.setupAudio(context);
-      const loading = new AbortController();
-      this.loading = loading;
       const instruments = await this.createInstruments(context, this.buses!, {
         signal: loading.signal,
       });
@@ -518,8 +523,24 @@ export class JazzBacking {
         if (context.state !== "closed") await context.close();
         return;
       }
-      this.loading = null;
+      // A mobile audio session can be suspended/interrupted while the first
+      // bank downloads and decodes. The user-gesture resume above is not proof
+      // that the context is still running several seconds later.
       this.instruments = instruments;
+      if (context.state !== "running")
+        await this.resumeContext(context, loading.signal);
+      if (generation !== this.generation || loading.signal.aborted) {
+        instruments.dispose();
+        if (context.state !== "closed") await context.close();
+        return;
+      }
+      if (context.state !== "running") {
+        instruments.dispose();
+        throw new Error(
+          "오디오 출력을 시작하지 못했습니다. 재생 버튼을 다시 눌러 주세요.",
+        );
+      }
+      this.loading = null;
       this.bar = clamp(
         Math.floor(safe(startBar ?? (cfg.loop ? cfg.loopStart : 0), 0)),
         cfg.loop ? cfg.loopStart : 0,
@@ -536,6 +557,9 @@ export class JazzBacking {
           !this.config
         )
           return;
+        // A suspended audio clock must never advance the transport through
+        // JavaScript callbacks. Continue only when the browser resumes output.
+        if (context.state !== "running") return;
         const current = this.config;
         this.applyLevels(current);
         if (this.nextTime < context.currentTime) {
@@ -611,6 +635,7 @@ export class JazzBacking {
                 this.callbacks.delete(timer);
                 if (
                   generation === this.generation &&
+                  context.state === "running" &&
                   context.currentTime - scheduledAt < 0.15
                 )
                   onPosition(position);
@@ -628,9 +653,65 @@ export class JazzBacking {
       schedule();
       this.interval = setInterval(schedule, 25);
     } catch (error) {
-      if (generation === this.generation) this.stop();
+      // stop()/a newer start already owns cleanup. Never surface its cancelled
+      // resume promise as a failure of the replacement playback request.
+      if (generation !== this.generation) return;
+      this.stop();
       throw error;
     }
+  }
+
+  private resumeContext(
+    context: AudioContext,
+    signal: AbortSignal,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      let finished = false;
+      const finish = (error?: unknown) => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timeout);
+        signal.removeEventListener("abort", cancel);
+        if (error) reject(error);
+        else resolve();
+      };
+      const cancel = () =>
+        finish(new DOMException("재생 준비가 취소되었습니다.", "AbortError"));
+      const timeout = setTimeout(
+        () =>
+          finish(
+            new Error(
+              "오디오 출력을 시작하지 못했습니다. 재생 버튼을 다시 눌러 주세요.",
+            ),
+          ),
+        4000,
+      );
+      if (signal.aborted) {
+        cancel();
+        return;
+      }
+      signal.addEventListener("abort", cancel, { once: true });
+      try {
+        // Invoke inside the initiating click, rather than deferring resume to a
+        // timer: mobile browsers require the user activation at this call.
+        context.resume().then(() => finish(), finish);
+      } catch (error) {
+        finish(error);
+      }
+    });
+  }
+
+  /** Current post-master graph RMS; this cannot detect an OS-muted speaker. */
+  readOutputLevel(): number {
+    if (!this.analyser || this.context?.state !== "running") return 0;
+    this.analyser.getFloatTimeDomainData(this.outputSamples);
+    let energy = 0;
+    for (const sample of this.outputSamples) energy += sample * sample;
+    return Math.sqrt(energy / this.outputSamples.length);
+  }
+
+  getState(): AudioContextState | "interrupted" | "idle" {
+    return this.context?.state ?? "idle";
   }
 
   update(patch: Partial<BackingConfig>): void {
@@ -678,7 +759,11 @@ export class JazzBacking {
     compressor.attack.value = 0.003;
     compressor.release.value = 0.18;
     compressor.connect(master);
-    master.connect(context.destination);
+    const analyser = context.createAnalyser();
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0;
+    master.connect(analyser);
+    analyser.connect(context.destination);
     const piano = context.createGain();
     const bass = context.createGain();
     const drums = context.createGain();
@@ -687,6 +772,7 @@ export class JazzBacking {
     drums.connect(compressor);
     this.master = master;
     this.compressor = compressor;
+    this.analyser = analyser;
     this.buses = { piano, bass, drums };
     this.applyLevels(this.config!);
   }
@@ -750,6 +836,8 @@ export class JazzBacking {
   }
   stop(): void {
     this.generation++;
+    this.releaseSession?.();
+    this.releaseSession = null;
     this.loading?.abort();
     this.loading = null;
     this.instruments?.dispose();
@@ -773,6 +861,8 @@ export class JazzBacking {
     this.buses?.drums.disconnect();
     this.master?.disconnect();
     this.compressor?.disconnect();
+    this.analyser?.disconnect();
+    this.analyser = null;
     this.master = null;
     this.compressor = null;
     this.buses = null;

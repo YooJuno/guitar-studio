@@ -63,6 +63,55 @@ function initialStyle(standard: Standard): BackingConfig["style"] {
       : "swing";
 }
 
+function BackingOutput({
+  engine,
+  active,
+  onInterrupted,
+}: {
+  engine: JazzBacking;
+  active: boolean;
+  onInterrupted: () => void;
+}) {
+  const [db, setDb] = useState(-72);
+  useEffect(() => {
+    if (!active) return;
+    let interruptedAt = 0;
+    const timer = window.setInterval(() => {
+      const level = engine.readOutputLevel();
+      setDb(
+        Math.min(
+          0,
+          Math.max(-72, Math.round(20 * Math.log10(Math.max(level, 0.00001)))),
+        ),
+      );
+      if (engine.getState() === "running" || document.hidden) {
+        interruptedAt = 0;
+      } else if (!interruptedAt) {
+        interruptedAt = performance.now();
+      } else if (performance.now() - interruptedAt > 1500) {
+        onInterrupted();
+      }
+    }, 125);
+    return () => window.clearInterval(timer);
+  }, [engine, active, onInterrupted]);
+  if (!active) return null;
+  return (
+    <span
+      className="practice-output"
+      role="meter"
+      aria-label="반주 출력"
+      aria-valuemin={-72}
+      aria-valuemax={0}
+      aria-valuenow={db}
+      title={`반주 출력 ${db} dB`}
+    >
+      {[-60, -48, -36, -24, -12].map((threshold) => (
+        <i key={threshold} className={db > threshold ? "lit" : ""} />
+      ))}
+    </span>
+  );
+}
+
 export default function JazzPractice({
   standard,
   transpose,
@@ -170,6 +219,10 @@ export default function JazzPractice({
     callbacks.current.onPosition(null);
     callbacks.current.onActiveChange?.(false);
   }, []);
+  const audioInterrupted = useCallback(() => {
+    stopAll();
+    setError("오디오가 중단됐습니다. 다시 재생해 주세요.");
+  }, [stopAll]);
   useEffect(() => {
     backing.current.update(config);
   }, [config]);
@@ -393,7 +446,7 @@ export default function JazzPractice({
             className={source === "backing" ? "selected" : ""}
             onClick={() => changeSource("backing")}
             aria-pressed={source === "backing"}
-            title="코드 차트 기반 합성 반주"
+            title="반주"
           >
             <Piano size={15} />
             반주
@@ -407,17 +460,24 @@ export default function JazzPractice({
             <Headphones size={15} />내 음원
           </button>
         </div>
-        <span className="practice-status" aria-live="off">
-          {source === "backing"
-            ? position
-              ? position.countIn
-                ? `${position.beat + 1} / ${meter.beats}`
-                : `${position.bar + 1}/${bars.length} · ${position.chorus}회`
-              : `${meter.beats}/${meter.denominator}`
-            : fileName
-              ? `${formatTime(trackState.position)} / ${formatTime(trackState.duration)}`
-              : ""}
-        </span>
+        <div className="practice-output-status">
+          <BackingOutput
+            engine={backing.current}
+            active={backingPlaying}
+            onInterrupted={audioInterrupted}
+          />
+          <span className="practice-status" aria-live="off">
+            {source === "backing"
+              ? position
+                ? position.countIn
+                  ? `${position.beat + 1} / ${meter.beats}`
+                  : `${position.bar + 1}/${bars.length} · ${position.chorus}회`
+                : `${meter.beats}/${meter.denominator}`
+              : fileName
+                ? `${formatTime(trackState.position)} / ${formatTime(trackState.duration)}`
+                : ""}
+          </span>
+        </div>
       </div>
       <div className="practice-transport">
         <button

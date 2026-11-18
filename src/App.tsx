@@ -17,7 +17,6 @@ import {
   LogOut,
   Play,
   Square,
-  Headphones,
   X,
   Check,
   Cloud,
@@ -801,79 +800,22 @@ export default function App() {
             <X size={20} />
           </button>
         </div>
-        <div className="help-sections">
-          <section>
-            <h3>
-              <Headphones size={18} /> 라인 입력
-            </h3>
-            <p>
-              기타 → 오디오 인터페이스 → 입력 장치 선택. 클린 DI를 사용하고,
-              연결한 채널(L/R)을 선택하세요. 브라우저의 ‘마이크’ 권한은 라인
-              입력에도 필요합니다.
-            </p>
-            <p>
-              입력이 빨갛게 표시되면 인터페이스 게인을 낮추세요. 동시 튜닝은
-              ±85센트 안쪽 개방현을 대상으로 하는 실험 기능입니다. 정밀 조정은
-              단음 모드를 사용하세요.
-            </p>
-            <p>
-              분석 창은 단음 약 0.34초, 동시 약 0.68초(48kHz)입니다. 실제 장비
-              정확도는 보장하지 않습니다.
-            </p>
-          </section>
-          <section>
-            <h3>
-              <Timer size={18} /> 메트로놈
-            </h3>
-            <p>
-              <kbd>Space</kbd> 재생·정지. 박을 누르면 강세·쉼·일반으로 바뀝니다.
-              템포는 재생 중 변경할 수 있습니다. 브라우저를 전면에 두고
-              사용하세요.
-            </p>
-          </section>
-          <section>
-            <h3>
-              <Music2 size={18} /> 악보
-            </h3>
-            <p>
-              스탠다드는 연습용 코드 차트와 정식 악보 링크를 제공합니다.
-              전통곡·오리지널 연습곡은 내장 오선 악보가 있습니다. 보유한 PDF를
-              열 수도 있습니다.
-            </p>
-          </section>
-          <section>
-            <h3>
-              <Cloud size={18} /> 저장
-            </h3>
-            <p>
-              로그인하면 튜닝·즐겨찾기·메트로놈 설정이 계정에 저장됩니다.
-              오디오와 선택한 PDF는 서버에 업로드하지 않습니다.
-            </p>
-          </section>
-          <div className="help-links">
-            <a
-              href="https://tcelectronic.com/en/products/0713-AAJ"
-              target="_blank"
-              rel="noreferrer"
-            >
-              PolyTune ↗
-            </a>
-            <a
-              href="https://www.frozenape.com/tempo.html"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Tempo ↗
-            </a>
-            <a
-              href="https://github.com/YooJuno/guitar-studio/blob/main/docs/references.md"
-              target="_blank"
-              rel="noreferrer"
-            >
-              레퍼런스 ↗
-            </a>
+        <dl className="help-shortcuts">
+          <div>
+            <dt>
+              <kbd>Space</kbd>
+            </dt>
+            <dd>
+              <Play size={16} /> 재생·정지
+            </dd>
           </div>
-        </div>
+          <div>
+            <dt>
+              <Timer size={18} /> 박 클릭
+            </dt>
+            <dd>강세 변경</dd>
+          </div>
+        </dl>
       </dialog>
       {toast && (
         <div className="toast" role="status">

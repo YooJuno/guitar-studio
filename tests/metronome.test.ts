@@ -7,6 +7,7 @@ import {
   tapTempo,
 } from "../src/lib/metronome.ts";
 import type { MetronomeConfig, Tick } from "../src/lib/metronome.ts";
+import { claimAudioSession } from "../src/lib/audio-session.ts";
 
 test("subdivisions and swing preserve the selected beat duration in /4 and /8", () => {
   for (const denominator of [4, 8]) {
@@ -389,4 +390,78 @@ test("volume zero is silent and invalid stored tempo cannot cause a scheduling l
   assert.equal(clock.contexts[0].starts.length, 0);
   assert.ok(ticks.length > 0 && ticks.length < 10);
   metronome.stop();
+});
+
+test("metronome claims playback before resume and releases without disturbing capture", async (t) => {
+  const clock = new Clock();
+  t.after(clock.install());
+  const navigator = globalThis.navigator;
+  const previous = Object.getOwnPropertyDescriptor(navigator, "audioSession");
+  const session = { type: "auto" };
+  Object.defineProperty(navigator, "audioSession", {
+    configurable: true,
+    value: session,
+  });
+  const metronome = new Metronome();
+  let capture: (() => void) | null = null;
+  try {
+    clock.deferResume = true;
+    const starting = metronome.start(
+      () => {},
+      () => {},
+    );
+    assert.equal(
+      session.type,
+      "playback",
+      "intent is claimed synchronously before resume completes",
+    );
+    metronome.stop();
+    assert.equal(session.type, "auto");
+    clock.pendingResume?.();
+    await starting;
+    capture = claimAudioSession("capture");
+    clock.deferResume = false;
+    await metronome.start(
+      () => {},
+      () => {},
+    );
+    metronome.stop();
+    assert.equal(
+      session.type,
+      "play-and-record",
+      "stopping metronome preserves tuner capture intent",
+    );
+    capture();
+    capture = null;
+    assert.equal(session.type, "auto");
+    metronome.config = { ...defaultMetronome, timerMinutes: 1 / 60 };
+    await metronome.start(
+      () => {},
+      () => {},
+    );
+    clock.advance(1200);
+    assert.equal(session.type, "auto", "automatic timer end releases playback");
+    globalThis.AudioContext = class {
+      constructor() {
+        throw new Error("constructor denied");
+      }
+    } as unknown as typeof AudioContext;
+    await assert.rejects(
+      metronome.start(
+        () => {},
+        () => {},
+      ),
+      /constructor denied/,
+    );
+    assert.equal(
+      session.type,
+      "auto",
+      "constructor failure cannot leave a playback lease",
+    );
+  } finally {
+    capture?.();
+    metronome.stop();
+    if (previous) Object.defineProperty(navigator, "audioSession", previous);
+    else Reflect.deleteProperty(navigator, "audioSession");
+  }
 });

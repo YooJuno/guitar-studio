@@ -1,3 +1,5 @@
+import { claimAudioSession } from "./audio-session";
+
 export type BeatStrength = 0 | 1 | 2;
 export interface MetronomeConfig {
   bpm: number;
@@ -94,6 +96,7 @@ export class Metronome {
   private step = 0;
   private startedAt = 0;
   private generation = 0;
+  private releaseSession: (() => void) | null = null;
   config: MetronomeConfig = {
     ...defaultMetronome,
     accents: [...defaultMetronome.accents],
@@ -102,9 +105,10 @@ export class Metronome {
   async start(onTick: (tick: Tick) => void, onStop: () => void) {
     this.stop();
     const generation = ++this.generation;
-    const context = new AudioContext();
-    this.context = context;
+    this.releaseSession = claimAudioSession("playback");
     try {
+      const context = new AudioContext();
+      this.context = context;
       await context.resume();
       if (generation !== this.generation) {
         if (context.state !== "closed") await context.close();
@@ -220,6 +224,8 @@ export class Metronome {
 
   stop() {
     this.generation++;
+    this.releaseSession?.();
+    this.releaseSession = null;
     if (this.timer !== null) clearInterval(this.timer);
     this.timer = null;
     this.visualTimers.forEach(clearTimeout);

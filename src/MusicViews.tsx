@@ -333,15 +333,6 @@ export function ChordsView({ strings, favorites, onFavorite }: MusicViewProps) {
           </p>
         )}
       </section>
-      <details className="music-help">
-        <summary title="운지 정보" aria-label="운지 정보">
-          <Info size={19} />
-        </summary>
-        <p>
-          현재 튜닝 기준 · 왼쪽이 낮은 현 · 원 안의 글자는 음이름. 손가락 번호는
-          표시하지 않습니다.
-        </p>
-      </details>
     </div>
   );
 }
@@ -611,7 +602,6 @@ export function ScalesView({ strings, favorites, onFavorite }: MusicViewProps) {
           <Info size={19} />
         </summary>
         <p>{scale.description}</p>
-        <p>지판의 음이름은 이명동음으로 간단히 표기합니다.</p>
       </details>
     </div>
   );
@@ -938,11 +928,6 @@ export function JazzView({
             <p>
               {selected.composer} · {selected.year}
             </p>
-            <p>
-              {selected.style} · {selected.form} · {selected.difficulty}
-            </p>
-            <p>{selected.description}</p>
-            <p>{selected.rightsNote}</p>
             <a
               className="music-source-link small"
               href={selected.scoreUrl}

@@ -187,6 +187,8 @@ class Source extends Node {
   }
 }
 class Context {
+  outputSample = 0;
+  resumeCalls = 0;
   state = "suspended";
   sampleRate = 48000;
   destination = new Node();
@@ -198,6 +200,7 @@ class Context {
     return this.clock.time / 1000;
   }
   resume() {
+    this.resumeCalls++;
     if (this.clock.failResume)
       return Promise.reject(new Error("audio unavailable"));
     this.state = "running";
@@ -239,6 +242,16 @@ class Context {
       type: "",
       frequency: new Param(),
       Q: new Param(),
+    });
+  }
+  createAnalyser() {
+    const context = this;
+    return Object.assign(new Node(), {
+      fftSize: 1024,
+      smoothingTimeConstant: 0,
+      getFloatTimeDomainData(samples: Float32Array) {
+        samples.fill(context.outputSample);
+      },
     });
   }
   createDynamicsCompressor() {
@@ -655,4 +668,186 @@ test("cancelling pending sample preparation aborts loading and a late renderer c
   assert.equal(disposed, 1);
   assert.equal(clock.contexts[0].state, "closed");
   assert.equal(clock.tasks.size, 0);
+});
+
+test("sample preparation rechecks a mobile context that became suspended before transport starts", async (t) => {
+  const clock = new Clock();
+  t.after(clock.install());
+  const factory: NonNullable<
+    ConstructorParameters<typeof JazzBacking>[0]
+  > = async (context, outputs, options) => {
+    const renderer = await renderingBoundary!(context, outputs, options);
+    (context as unknown as Context).state = "suspended";
+    return renderer;
+  };
+  const backing = new JazzBacking(factory);
+  const positions: BackingPosition[] = [];
+  await backing.start(
+    base,
+    (position) => positions.push(position),
+    () => {},
+  );
+  assert.equal(
+    clock.contexts[0].resumeCalls,
+    2,
+    "must resume again after asynchronous sample preparation",
+  );
+  assert.equal(backing.getState(), "running");
+  clock.advance(200);
+  assert.ok(positions.length > 0);
+  clock.contexts[0].outputSample = 0.125;
+  near(backing.readOutputLevel(), 0.125);
+  clock.contexts[0].state = "suspended";
+  const before = positions.length;
+  clock.advance(2000);
+  assert.equal(
+    positions.length,
+    before,
+    "a suspended audio clock must not move the UI",
+  );
+  assert.equal(backing.readOutputLevel(), 0);
+  backing.stop();
+  assert.equal(backing.getState(), "idle");
+  assert.equal(backing.readOutputLevel(), 0);
+});
+
+test("an audio context still interrupted after retry fails instead of reporting silent playback", async (t) => {
+  const clock = new Clock();
+  t.after(clock.install());
+  const factory: NonNullable<
+    ConstructorParameters<typeof JazzBacking>[0]
+  > = async (context, outputs, options) => {
+    const renderer = await renderingBoundary!(context, outputs, options);
+    const fake = context as unknown as Context;
+    fake.state = "interrupted";
+    fake.resume = async () => {};
+    return renderer;
+  };
+  const backing = new JazzBacking(factory);
+  await assert.rejects(
+    backing.start(
+      base,
+      () => assert.fail("silent transport"),
+      () => {},
+    ),
+    /오디오 출력/,
+  );
+  assert.equal(clock.contexts[0].state, "closed");
+  assert.equal(clock.tasks.size, 0);
+});
+
+test("a blocked resume fails after four seconds and restores its audio-session lease", async (t) => {
+  const clock = new Clock();
+  t.after(clock.install());
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+  const session = { type: "ambient" };
+  Object.defineProperty(globalThis, "navigator", {
+    configurable: true,
+    value: { audioSession: session },
+  });
+  t.after(() => {
+    if (descriptor) Object.defineProperty(globalThis, "navigator", descriptor);
+    else delete (globalThis as { navigator?: unknown }).navigator;
+  });
+  clock.deferResume = true;
+  const backing = new JazzBacking(renderingBoundary);
+  const starting = backing.start(
+    base,
+    () => assert.fail("blocked output advanced"),
+    () => {},
+  );
+  const rejected = assert.rejects(starting, /오디오 출력/);
+  assert.equal(
+    session.type,
+    "playback",
+    "claim playback inside the initiating action",
+  );
+  clock.advance(3999);
+  assert.equal(clock.contexts[0].starts.length, 0);
+  clock.advance(1);
+  await rejected;
+  assert.equal(backing.getState(), "idle");
+  assert.equal(clock.contexts[0].state, "closed");
+  assert.equal(session.type, "ambient");
+  assert.equal(clock.tasks.size, 0);
+  // A browser may settle the obsolete resume promise later; it must stay inert.
+  clock.resolveResume?.();
+  await Promise.resolve();
+  assert.equal(backing.getState(), "idle");
+});
+
+test("stop immediately cancels pending resume and a later successful start remains independent", async (t) => {
+  const clock = new Clock();
+  t.after(clock.install());
+  clock.deferResume = true;
+  const backing = new JazzBacking(renderingBoundary);
+  const starting = backing.start(
+    base,
+    () => assert.fail("cancelled position"),
+    () => {},
+  );
+  const lateResume = clock.resolveResume;
+  backing.stop();
+  await starting; // No clock advance and no need for the browser promise to settle.
+  assert.equal(clock.tasks.size, 0);
+  assert.equal(clock.contexts[0].state, "closed");
+  clock.deferResume = false;
+  const positions: BackingPosition[] = [];
+  await backing.start(
+    base,
+    (position) => positions.push(position),
+    () => {},
+  );
+  lateResume?.();
+  await Promise.resolve();
+  assert.equal(backing.getState(), "running");
+  clock.advance(200);
+  assert.ok(positions.length > 0);
+  backing.stop();
+  assert.equal(clock.tasks.size, 0);
+});
+
+test("stop during post-load resume cancels its timeout and disposes the prepared renderer", async (t) => {
+  const clock = new Clock();
+  t.after(clock.install());
+  let secondResume = false;
+  let finishResume: (() => void) | null = null;
+  let disposed = 0;
+  const factory: NonNullable<
+    ConstructorParameters<typeof JazzBacking>[0]
+  > = async (context, outputs, options) => {
+    const renderer = await renderingBoundary!(context, outputs, options);
+    const fake = context as unknown as Context;
+    fake.state = "suspended";
+    fake.resume = () => {
+      secondResume = true;
+      return new Promise((resolve) => {
+        finishResume = resolve;
+      });
+    };
+    return {
+      ...renderer,
+      dispose: () => {
+        disposed++;
+        renderer.dispose();
+      },
+    };
+  };
+  const backing = new JazzBacking(factory);
+  const starting = backing.start(
+    base,
+    () => assert.fail("cancelled post-load output"),
+    () => {},
+  );
+  for (let turn = 0; turn < 10 && !secondResume; turn++)
+    await Promise.resolve();
+  assert.ok(secondResume);
+  backing.stop();
+  await starting;
+  assert.equal(disposed, 1);
+  assert.equal(clock.contexts[0].state, "closed");
+  assert.equal(clock.tasks.size, 0);
+  finishResume?.();
+  await Promise.resolve();
+  assert.equal(backing.getState(), "idle");
 });

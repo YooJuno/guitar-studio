@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+import { claimAudioSession } from "./audio-session";
 
 /** Original-track seconds, independent of the selected playback rate. */
 export interface TrackState {
@@ -138,6 +139,7 @@ interface Session {
   playRequest: number;
   error: string | null;
   ended: boolean;
+  releaseSession: (() => void) | null;
 }
 
 /** Local object-URL player. Audio data never passes through a network service. */
@@ -193,6 +195,7 @@ export class LocalTrack {
       playRequest: 0,
       error: null,
       ended: false,
+      releaseSession: null,
     };
     this.session = session;
     if (!this.listening) {
@@ -244,19 +247,20 @@ export class LocalTrack {
     if (!session || !session.duration)
       throw new Error("먼저 음원을 선택해 주세요.");
     const request = ++session.playRequest;
-    session.error = null;
-    if (
-      this.options.loop &&
-      (session.audio.currentTime < this.options.loopStart ||
-        session.audio.currentTime >= this.options.loopEnd)
-    )
-      this.seek(this.options.loopStart);
-    else if (
-      session.audio.ended ||
-      session.audio.currentTime >= session.duration
-    )
-      this.seek(0);
+    session.releaseSession ??= claimAudioSession("playback");
     try {
+      session.error = null;
+      if (
+        this.options.loop &&
+        (session.audio.currentTime < this.options.loopStart ||
+          session.audio.currentTime >= this.options.loopEnd)
+      )
+        this.seek(this.options.loopStart);
+      else if (
+        session.audio.ended ||
+        session.audio.currentTime >= session.duration
+      )
+        this.seek(0);
       // Always queue resume; a previous pause() may still have a suspend pending.
       if (session.context) await session.context.resume();
       if (this.session !== session || request !== session.playRequest) return;
@@ -267,6 +271,7 @@ export class LocalTrack {
       this.emit(session, true);
     } catch (error) {
       if (this.session === session && request === session.playRequest) {
+        this.pause();
         session.error =
           "음원을 재생하지 못했습니다. 지원되는 형식과 오디오 출력을 확인해 주세요.";
         this.emit(session, true);
@@ -279,6 +284,7 @@ export class LocalTrack {
     const session = this.session;
     if (!session) return;
     session.playRequest++;
+    this.releasePlayback(session);
     session.audio.pause();
     this.stopFrames(session);
     if (session.context?.state !== "closed")
@@ -336,6 +342,12 @@ export class LocalTrack {
 
   private current(session: Session, generation = this.generation) {
     return this.session === session && generation === this.generation;
+  }
+
+  private releasePlayback(session: Session) {
+    const release = session.releaseSession;
+    session.releaseSession = null;
+    release?.();
   }
 
   private metadata(session: Session): Promise<void> {
@@ -487,11 +499,13 @@ export class LocalTrack {
       );
     };
     on("play", () => {
+      session.releaseSession ??= claimAudioSession("playback");
       session.ended = false;
       this.startFrames(session);
       this.emit(session, true);
     });
     on("pause", () => {
+      this.releasePlayback(session);
       this.stopFrames(session);
       this.emit(session, true);
     });
@@ -503,6 +517,7 @@ export class LocalTrack {
         this.seek(this.options.loopStart);
         void this.play().catch(() => {});
       } else {
+        this.releasePlayback(session);
         session.ended = true;
         this.stopFrames(session);
         if (session.context?.state !== "closed")
@@ -577,6 +592,7 @@ export class LocalTrack {
     this.session = null;
     if (!session) return;
     session.playRequest++;
+    this.releasePlayback(session);
     session.cancelMetadata?.();
     session.removeEvents.forEach((remove) => remove());
     this.stopFrames(session);

@@ -44,6 +44,38 @@
   color: #46513f;
   white-space: nowrap;
 }
+.practice-output-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.practice-output {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 18px;
+}
+.practice-output i {
+  width: 3px;
+  height: 6px;
+  border-radius: 1px;
+  background: #c5cdbc;
+}
+.practice-output i:nth-child(2) {
+  height: 9px;
+}
+.practice-output i:nth-child(3) {
+  height: 12px;
+}
+.practice-output i:nth-child(4) {
+  height: 15px;
+}
+.practice-output i:nth-child(5) {
+  height: 18px;
+}
+.practice-output i.lit {
+  background: #426d25;
+}
 .practice-transport {
   display: grid;
   grid-template-columns: 44px 32px minmax(90px, 1fr) minmax(130px, 1fr) 40px;
