@@ -9,19 +9,14 @@ import {
   useState,
 } from "react";
 import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Drum,
   Headphones,
   LoaderCircle,
-  Minus,
   Music2,
   Pause,
   Piano,
   Play,
-  Plus,
-  Repeat2,
+  Settings2,
   SkipBack,
   Square,
   Timer,
@@ -63,6 +58,16 @@ const initialTrack: TrackState = {
 };
 const formatTime = (seconds: number) =>
   `${Math.floor(Math.max(0, seconds) / 60)}:${String(Math.floor(Math.max(0, seconds) % 60)).padStart(2, "0")}`;
+const practicePanels = [
+  { id: "playback", label: "재생", icon: Play },
+  { id: "mixer", label: "믹서", icon: Volume2 },
+] as const;
+const backingChannels = [
+  { id: "piano", label: "피아노", icon: Piano },
+  { id: "bass", label: "베이스", icon: Music2 },
+  { id: "drums", label: "드럼", icon: Drum },
+] as const;
+
 function initialStyle(standard: Standard): BackingConfig["style"] {
   const style = standard.style.toLowerCase();
   return style.includes("bossa")
@@ -134,15 +139,14 @@ function JazzPractice({
   const controlsId = useId();
   const playerRef = useRef<HTMLElement>(null);
   const [expanded, setExpanded] = useState(false);
+  const [settingsPanel, setSettingsPanel] =
+    useState<(typeof practicePanels)[number]["id"]>("playback");
   const [source, setSource] = useState<"backing" | "file">("backing");
   const [bpm, setBpm] = useState(standard.bpm);
   const [bpmDraft, setBpmDraft] = useState(String(standard.bpm));
   const [style, setStyle] = useState<BackingConfig["style"]>(() =>
     initialStyle(standard),
   );
-  const [loop, setLoop] = useState(true);
-  const [loopStart, setLoopStart] = useState(0);
-  const [loopEnd, setLoopEnd] = useState(bars.length - 1);
   const [countIn, setCountIn] = useState(1);
   const [volume, setVolume] = useState(0.65);
   const [levels, setLevels] = useState({ piano: 0.75, bass: 0.7, drums: 0.4 });
@@ -154,9 +158,6 @@ function JazzPractice({
   const [fileName, setFileName] = useState("");
   const [trackState, setTrackState] = useState<TrackState>(initialTrack);
   const [rate, setRate] = useState(1);
-  const [fileLoop, setFileLoop] = useState(false);
-  const [fileA, setFileA] = useState(0);
-  const [fileB, setFileB] = useState(0);
   const baseRoot = parseJazzChord(standard.key.split(" ")[0])?.root ?? 0;
   const [fileRoot, setFileRoot] = useState(baseRoot);
   const filePitch =
@@ -189,9 +190,9 @@ function JazzPractice({
       transpose,
       beats: meter.beats,
       style,
-      loop,
-      loopStart,
-      loopEnd,
+      loop: false,
+      loopStart: 0,
+      loopEnd: bars.length - 1,
       countIn,
       volume,
       ...levels,
@@ -202,9 +203,6 @@ function JazzPractice({
       transpose,
       meter.beats,
       style,
-      loop,
-      loopStart,
-      loopEnd,
       countIn,
       volume,
       levels,
@@ -244,9 +242,6 @@ function JazzPractice({
         rate,
         pitch: trackState.pitchSupported ? filePitch : 0,
         volume,
-        loop: fileLoop,
-        loopStart: fileA,
-        loopEnd: fileB,
       });
     } catch (failure) {
       setError(
@@ -255,15 +250,7 @@ function JazzPractice({
           : "음원 설정을 적용하지 못했습니다.",
       );
     }
-  }, [
-    rate,
-    filePitch,
-    volume,
-    fileLoop,
-    fileA,
-    fileB,
-    trackState.pitchSupported,
-  ]);
+  }, [rate, filePitch, volume, trackState.pitchSupported]);
   useEffect(() => {
     mounted.current = true;
     const pageHide = () => stopAll();
@@ -280,7 +267,7 @@ function JazzPractice({
     };
   }, [backing, stopAll]);
 
-  async function playBacking(startBar?: number, skipCountIn = false) {
+  async function playBacking(skipCountIn = false) {
     const token = ++generation.current;
     local.current?.pause();
     setError("");
@@ -308,7 +295,6 @@ function JazzPractice({
           callbacks.current.onPosition(null);
           callbacks.current.onActiveChange?.(false);
         },
-        startBar,
       );
       if (!mounted.current || token !== generation.current) return;
       setBackingPlaying(true);
@@ -380,9 +366,6 @@ function JazzPractice({
     local.current = player;
     setTrackState(initialTrack);
     setRate(1);
-    setFileA(0);
-    setFileB(0);
-    setFileLoop(false);
     setFileRoot(baseRoot);
     try {
       const info = await player.load(file, (state) => {
@@ -397,15 +380,11 @@ function JazzPractice({
         return;
       }
       setFileName(info.name);
-      setFileB(info.duration);
       const pitch = ((((configRef.current.transpose + 6) % 12) + 12) % 12) - 6;
       player.update({
         rate: 1,
         pitch: info.pitchSupported ? pitch : 0,
         volume: configRef.current.volume,
-        loop: false,
-        loopStart: 0,
-        loopEnd: info.duration,
       });
     } catch (failure) {
       if (mounted.current && token === loadGeneration.current)
@@ -472,14 +451,6 @@ function JazzPractice({
     position && !position.countIn
       ? ((position.bar + position.beat / meter.beats) / bars.length) * 100
       : 0;
-  const sectionRanges = useMemo(() => {
-    let offset = 0;
-    return standard.sections.map((section) => {
-      const start = offset;
-      offset += section.bars.length;
-      return { label: section.label, start, end: offset - 1 };
-    });
-  }, [standard]);
 
   return (
     <section
@@ -524,6 +495,11 @@ function JazzPractice({
               onBlur={() => setTempo(Number(bpmDraft) || bpm)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") event.currentTarget.blur();
+                if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                  event.preventDefault();
+                  const step = event.key === "ArrowUp" ? 1 : -1;
+                  setTempo((Number(bpmDraft) || bpm) + step);
+                }
               }}
             />
             <span>BPM</span>
@@ -571,418 +547,253 @@ function JazzPractice({
           title={expanded ? "반주 설정 접기" : "반주 설정 펼치기"}
           onClick={() => setExpanded((open) => !open)}
         >
-          <ChevronDown size={21} />
+          <Settings2 size={20} />
         </button>
       </div>
-      {source === "backing" && (playing || expanded) && (
-        <div
-          className="practice-progress"
-          role="progressbar"
-          aria-label="반주 진행"
-          aria-valuemin={0}
-          aria-valuemax={bars.length}
-          aria-valuenow={position && !position.countIn ? position.bar + 1 : 0}
-        >
-          <i style={{ width: `${progress}%` }} />
+      {backingPlaying && (
+        <div className="practice-timeline">
+          <div
+            className="practice-progress"
+            role="progressbar"
+            aria-label="반주 진행"
+            aria-valuemin={0}
+            aria-valuemax={bars.length}
+            aria-valuenow={position && !position.countIn ? position.bar + 1 : 0}
+          >
+            <i style={{ width: `${progress}%` }} />
+          </div>
+          <BackingOutput
+            engine={backing}
+            active={backingPlaying}
+            onInterrupted={audioInterrupted}
+          />
+          <span className="practice-status">
+            {position?.countIn
+              ? `${position.beat + 1} / ${meter.beats}`
+              : `${(position?.bar ?? 0) + 1}/${bars.length}`}
+          </span>
         </div>
       )}
+      {source === "file" && fileName && (
+        <div className="practice-timeline practice-file-timeline">
+          <span>{formatTime(trackState.position)}</span>
+          <input
+            type="range"
+            aria-label="음원 재생 위치"
+            min="0"
+            max={trackState.duration || 1}
+            step=".1"
+            value={Math.min(trackState.position, trackState.duration)}
+            onChange={(event) => local.current?.seek(+event.target.value)}
+          />
+          <span>{formatTime(trackState.duration)}</span>
+        </div>
+      )}
+      <input
+        ref={fileInput}
+        className="practice-file-input"
+        type="file"
+        accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac,.aac"
+        aria-label="연습 음원 선택"
+        onChange={(event) => {
+          void loadFile(event.target.files?.[0]);
+          event.target.value = "";
+        }}
+      />
+
       <div id={controlsId} className="practice-expanded" hidden={!expanded}>
-        <div className="practice-topline">
-          <div
-            className="practice-source"
-            role="group"
-            aria-label="오디오 소스"
-          >
-            <button
-              className={source === "backing" ? "selected" : ""}
-              onClick={() => changeSource("backing")}
-              aria-pressed={source === "backing"}
-              title="반주"
-            >
-              <Piano size={15} />
-              반주
-            </button>
-            <button
-              className={source === "file" ? "selected" : ""}
-              onClick={() => changeSource("file")}
-              aria-pressed={source === "file"}
-              title="기기에 있는 음원 열기"
-            >
-              <Headphones size={15} />내 음원
-            </button>
-          </div>
-          <div className="practice-output-status">
-            <BackingOutput
-              engine={backing}
-              active={backingPlaying}
-              onInterrupted={audioInterrupted}
-            />
-            <span className="practice-status" aria-live="off">
-              {source === "backing"
-                ? position
-                  ? position.countIn
-                    ? `${position.beat + 1} / ${meter.beats}`
-                    : `${position.bar + 1}/${bars.length} · ${position.chorus}회`
-                  : `${meter.beats}/${meter.denominator}`
-                : fileName
-                  ? `${formatTime(trackState.position)} / ${formatTime(trackState.duration)}`
-                  : ""}
-            </span>
-          </div>
-        </div>
-        <div className="practice-actions">
-          <button
-            className="icon-button practice-restart"
-            aria-label="처음으로"
-            title="처음으로"
-            disabled={needsFile}
-            onClick={() => {
-              if (source === "file") {
-                local.current?.seek(fileLoop ? fileA : 0);
-              } else if (backingPlaying) {
-                void playBacking(loop ? loopStart : 0, true);
-              } else {
-                setPosition(null);
-                callbacks.current.onPosition(null);
-              }
-            }}
-          >
-            <SkipBack size={17} />
-          </button>
-          <button
-            className={`icon-button practice-loop ${(source === "backing" ? loop : fileLoop) ? "enabled" : ""}`}
-            title="구간 반복"
-            aria-label="구간 반복"
-            aria-pressed={source === "backing" ? loop : fileLoop}
-            disabled={needsFile}
-            onClick={() =>
-              source === "backing" ? setLoop(!loop) : setFileLoop(!fileLoop)
-            }
-          >
-            <Repeat2 size={19} />
-          </button>
-          {source === "backing" && (
-            <div
-              className="practice-step"
-              role="group"
-              aria-label="템포 미세 조정"
-            >
-              <button
-                type="button"
-                className="icon-button"
-                aria-label="반주 템포 1 낮추기"
-                onClick={() => setTempo(bpm - 1)}
-              >
-                <Minus size={16} />
-              </button>
-              <span>BPM</span>
-              <button
-                type="button"
-                className="icon-button"
-                aria-label="반주 템포 1 높이기"
-                onClick={() => setTempo(bpm + 1)}
-              >
-                <Plus size={16} />
-              </button>
-            </div>
-          )}
-          <div className="practice-step" role="group" aria-label="키 미세 조정">
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="반주 키 반음 내리기"
-              onClick={() => onTranspose(transpose - 1)}
-              disabled={transpose <= -11 || keyDisabled}
-            >
-              <ChevronLeft size={17} />
-            </button>
-            <span>키</span>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="반주 키 반음 올리기"
-              onClick={() => onTranspose(transpose + 1)}
-              disabled={transpose >= 11 || keyDisabled}
-            >
-              <ChevronRight size={17} />
-            </button>
-          </div>
-        </div>
-        {source === "backing" ? (
+        {expanded && (
           <>
-            <div className="practice-quick-controls">
-              <div className="practice-loop-range">
-                <Repeat2 size={13} />
-                <select
-                  aria-label="반복 시작 마디"
-                  disabled={!loop}
-                  value={loopStart}
-                  onChange={(event) => {
-                    const value = +event.target.value;
-                    setLoopStart(value);
-                    if (value > loopEnd) setLoopEnd(value);
-                  }}
+            <div className="panel-tabs practice-tabs" role="group" aria-label="재생 설정">
+              {practicePanels.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={settingsPanel === id}
+                  onClick={() => setSettingsPanel(id)}
                 >
-                  {bars.map((_, i) => (
-                    <option key={i} value={i}>
-                      {i + 1}
-                    </option>
-                  ))}
-                </select>
-                <span>—</span>
-                <select
-                  aria-label="반복 마지막 마디"
-                  disabled={!loop}
-                  value={loopEnd}
-                  onChange={(event) => {
-                    const value = +event.target.value;
-                    setLoopEnd(value);
-                    if (value < loopStart) setLoopStart(value);
-                  }}
-                >
-                  {bars.map((_, i) => (
-                    <option key={i} value={i}>
-                      {i + 1}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <select
-                className="practice-style"
-                aria-label="반주 스타일"
-                value={style}
-                onChange={(event) =>
-                  setStyle(event.target.value as BackingConfig["style"])
-                }
-              >
-                <option value="swing">Swing</option>
-                <option value="bossa">Bossa</option>
-                <option value="ballad">Ballad</option>
-                <option value="straight">Straight</option>
-              </select>
+                  <Icon size={16} aria-hidden="true" />
+                  {label}
+                </button>
+              ))}
             </div>
-            <div className="practice-mixer">
-              {(
-                [
-                  { id: "piano", label: "피아노", icon: Piano },
-                  { id: "bass", label: "베이스", icon: Music2 },
-                  { id: "drums", label: "드럼", icon: Drum },
-                ] as const
-              ).map((item) => (
-                <label key={item.id} title={item.label}>
+
+            {settingsPanel === "playback" && (
+              <div className="practice-settings-content">
+                <div className="practice-playback-actions">
+                  <div className="practice-source" role="group" aria-label="오디오 소스">
+                    <button
+                      type="button"
+                      onClick={() => changeSource("backing")}
+                      aria-pressed={source === "backing"}
+                    >
+                      <Piano size={16} aria-hidden="true" /> 반주
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => changeSource("file")}
+                      aria-pressed={source === "file"}
+                    >
+                      <Headphones size={16} aria-hidden="true" /> 내 음원
+                    </button>
+                  </div>
                   <button
-                    title={`${item.label} ${levels[item.id] ? "음소거" : "켜기"}`}
-                    aria-label={`${item.label} ${levels[item.id] ? "음소거" : "켜기"}`}
-                    aria-pressed={levels[item.id] === 0}
-                    onClick={() =>
-                      setLevels((current) => ({
-                        ...current,
-                        [item.id]: current[item.id] ? 0 : 0.65,
-                      }))
-                    }
-                    className={levels[item.id] ? "" : "muted"}
+                    type="button"
+                    className="icon-button"
+                    aria-label="처음으로"
+                    title="처음으로"
+                    disabled={needsFile}
+                    onClick={() => {
+                      if (source === "file") {
+                        local.current?.seek(0);
+                      } else if (backingPlaying) {
+                        void playBacking(true);
+                      } else {
+                        setPosition(null);
+                        callbacks.current.onPosition(null);
+                      }
+                    }}
                   >
-                    <item.icon size={16} />
+                    <SkipBack size={17} />
                   </button>
+                  {source === "backing" && onTempo && (
+                    <button
+                      type="button"
+                      className="icon-button"
+                      title="메트로놈에 템포 적용"
+                      aria-label="메트로놈에 템포 적용"
+                      onClick={() => onTempo(bpm)}
+                    >
+                      <Timer size={18} />
+                    </button>
+                  )}
+                </div>
+                {source === "backing" ? (
+                  <div className="practice-playback-options">
+                    <select
+                      aria-label="반주 스타일"
+                      value={style}
+                      onChange={(event) =>
+                        setStyle(event.target.value as BackingConfig["style"])
+                      }
+                    >
+                      <option value="swing">Swing</option>
+                      <option value="bossa">Bossa</option>
+                      <option value="ballad">Ballad</option>
+                      <option value="straight">Straight</option>
+                    </select>
+                    <select
+                      aria-label="카운트인"
+                      value={countIn}
+                      onChange={(event) => setCountIn(+event.target.value)}
+                    >
+                      <option value="0">카운트인 끔</option>
+                      <option value="1">카운트인 1마디</option>
+                      <option value="2">카운트인 2마디</option>
+                    </select>
+                  </div>
+                ) : fileName && (
+                  <>
+                    <div className="practice-file-name">
+                      <Music2 size={16} aria-hidden="true" />
+                      <span title={fileName}>{fileName}</span>
+                      <button
+                        type="button"
+                        className="icon-button"
+                        title="다른 음원"
+                        aria-label="다른 음원 선택"
+                        onClick={() => fileInput.current?.click()}
+                      >
+                        <Upload size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-button"
+                        title="음원 닫기"
+                        aria-label="음원 닫기"
+                        onClick={closeFile}
+                      >
+                        <X size={17} />
+                      </button>
+                    </div>
+                    {trackState.pitchSupported ? (
+                      <div className="practice-file-key">
+                        <label title="업로드한 음원 원래 키의 근음">
+                          원음 키
+                          <select
+                            value={fileRoot}
+                            aria-label="음원 원래 키"
+                            onChange={(event) => setFileRoot(+event.target.value)}
+                          >
+                            {pitchClasses.map((name, i) => (
+                              <option key={i} value={i}>{name}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <span title="음원의 실제 피치 이동">
+                          {filePitch > 0 ? "+" : ""}{filePitch} st
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="practice-fallback" role="status">
+                        이 브라우저는 속도 조절만 지원합니다.
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {settingsPanel === "mixer" && (
+              <div className="practice-settings-content practice-mixer">
+                <label className="practice-mix-channel">
+                  <span><Volume2 size={16} aria-hidden="true" /> 전체</span>
                   <input
                     type="range"
+                    aria-label="반주 전체 볼륨"
                     min="0"
                     max="1"
                     step=".05"
-                    aria-label={`${item.label} 볼륨`}
-                    value={levels[item.id]}
-                    onChange={(event) =>
-                      setLevels((current) => ({
-                        ...current,
-                        [item.id]: +event.target.value,
-                      }))
-                    }
+                    value={volume}
+                    onChange={(event) => setVolume(+event.target.value)}
                   />
                 </label>
-              ))}
-              <label className="practice-countin">
-                <Timer size={15} />
-                <select
-                  aria-label="카운트인"
-                  value={countIn}
-                  onChange={(event) => setCountIn(+event.target.value)}
-                >
-                  <option value="0">카운트 없음</option>
-                  <option value="1">1마디</option>
-                  <option value="2">2마디</option>
-                </select>
-              </label>
-            </div>
-            <div className="practice-sections">
-              {sectionRanges.map((section, i) => (
-                <button
-                  key={i}
-                  className={
-                    loop &&
-                    loopStart === section.start &&
-                    loopEnd === section.end
-                      ? "selected"
-                      : ""
-                  }
-                  title={`${section.start + 1}–${section.end + 1}마디 반복`}
-                  onClick={() => {
-                    setLoop(true);
-                    setLoopStart(section.start);
-                    setLoopEnd(section.end);
-                  }}
-                >
-                  {section.label}
-                </button>
-              ))}
-              <button
-                title="전체 반복"
-                onClick={() => {
-                  setLoopStart(0);
-                  setLoopEnd(bars.length - 1);
-                  setLoop(true);
-                }}
-              >
-                전체
-              </button>
-              {onTempo && (
-                <button
-                  title="메트로놈에 템포 적용"
-                  aria-label="메트로놈에 템포 적용"
-                  onClick={() => onTempo(bpm)}
-                >
-                  <Timer size={13} />
-                  {bpm}
-                </button>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="practice-file-panel">
-            <input
-              ref={fileInput}
-              className="practice-file-input"
-              type="file"
-              accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac,.aac"
-              aria-label="연습 음원 선택"
-              onChange={(event) => {
-                void loadFile(event.target.files?.[0]);
-                event.target.value = "";
-              }}
-            />
-            {fileName ? (
-              <>
-                <div className="practice-file-name">
-                  <Music2 size={14} />
-                  <span title={fileName}>{fileName}</span>
-                  <button
-                    className="icon-button"
-                    title="다른 음원"
-                    aria-label="다른 음원 선택"
-                    onClick={() => fileInput.current?.click()}
-                  >
-                    <Upload size={15} />
-                  </button>
-                  <button
-                    className="icon-button"
-                    title="음원 닫기"
-                    aria-label="음원 닫기"
-                    onClick={closeFile}
-                  >
-                    <X size={15} />
-                  </button>
-                </div>
-                <input
-                  className="practice-seek"
-                  type="range"
-                  aria-label="음원 재생 위치"
-                  min="0"
-                  max={trackState.duration || 1}
-                  step=".1"
-                  value={Math.min(trackState.position, trackState.duration)}
-                  onChange={(event) => local.current?.seek(+event.target.value)}
-                />
-                <div className="practice-file-options">
-                  <div className="practice-ab">
+                {source === "backing" && backingChannels.map(({ id, label, icon: Icon }) => (
+                  <div key={id} className="practice-mix-channel">
                     <button
-                      title="현재 위치를 반복 시작으로"
-                      onClick={() => {
-                        const start = Math.min(
-                          trackState.position,
-                          Math.max(0, trackState.duration - 0.25),
-                        );
-                        setFileA(start);
-                        if (fileB <= start) setFileB(trackState.duration);
-                        setFileLoop(true);
-                      }}
-                      aria-label="A 반복 시작 설정"
+                      type="button"
+                      title={`${label} ${levels[id] ? "음소거" : "켜기"}`}
+                      aria-label={`${label} 음소거`}
+                      aria-pressed={levels[id] === 0}
+                      onClick={() =>
+                        setLevels((current) => ({
+                          ...current,
+                          [id]: current[id] ? 0 : 0.65,
+                        }))
+                      }
                     >
-                      A <small>{formatTime(fileA)}</small>
+                      <Icon size={16} aria-hidden="true" /> {label}
                     </button>
-                    <span>—</span>
-                    <button
-                      title="현재 위치를 반복 끝으로"
-                      onClick={() => {
-                        setFileB(
-                          Math.min(
-                            trackState.duration,
-                            Math.max(trackState.position, fileA + 0.25),
-                          ),
-                        );
-                        setFileLoop(true);
-                      }}
-                      aria-label="B 반복 끝 설정"
-                    >
-                      B <small>{formatTime(fileB)}</small>
-                    </button>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step=".05"
+                      aria-label={`${label} 볼륨`}
+                      value={levels[id]}
+                      onChange={(event) =>
+                        setLevels((current) => ({
+                          ...current,
+                          [id]: +event.target.value,
+                        }))
+                      }
+                    />
                   </div>
-                  <label
-                    className="practice-original-key"
-                    title="업로드한 음원 원래 키의 근음"
-                  >
-                    원음 키
-                    <select
-                      value={fileRoot}
-                      aria-label="음원 원래 키"
-                      onChange={(event) => setFileRoot(+event.target.value)}
-                    >
-                      {pitchClasses.map((name, i) => (
-                        <option key={i} value={i}>
-                          {name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <span
-                    className="practice-pitch"
-                    title="음원의 실제 피치 이동"
-                  >
-                    {filePitch > 0 ? "+" : ""}
-                    {trackState.pitchSupported ? filePitch : 0} st
-                  </span>
-                </div>
-              </>
-            ) : null}
-            {!trackState.pitchSupported && fileName && (
-              <span className="practice-fallback" role="status">
-                이 브라우저는 속도 조절만 지원합니다.
-              </span>
+                ))}
+              </div>
             )}
-          </div>
+          </>
         )}
-        <div className="practice-bottom">
-          <label className="practice-master" title="전체 볼륨">
-            <Volume2 size={14} />
-            <input
-              type="range"
-              aria-label="반주 전체 볼륨"
-              min="0"
-              max="1"
-              step=".05"
-              value={volume}
-              onChange={(event) => setVolume(+event.target.value)}
-            />
-          </label>
-        </div>
       </div>
       {error && (
         <div className="practice-error" role="alert">
