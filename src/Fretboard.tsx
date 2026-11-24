@@ -47,10 +47,15 @@ export default function Fretboard({
               {start + i}
             </text>
             {[3, 5, 7, 9, 15, 17, 19, 21].includes(start + i) && (
-              <circle cx={x(i)} cy={top - 15} r="2.5" fill="#bbc2b5" />
+              <circle
+                cx={x(i)}
+                cy={top - 15}
+                r="2.5"
+                fill="var(--control-border)"
+              />
             )}
             {[12, 24].includes(start + i) && (
-              <g fill="#bbc2b5">
+              <g fill="var(--control-border)">
                 <circle cx={x(i) - 4} cy={top - 15} r="2.5" />
                 <circle cx={x(i) + 4} cy={top - 15} r="2.5" />
               </g>
@@ -61,7 +66,7 @@ export default function Fretboard({
                 x2={x(i) - step / 2}
                 y1={top}
                 y2={top + (strings.length - 1) * rowGap}
-                stroke="#d7dccf"
+                stroke="var(--control-border)"
               />
             )}
           </g>
@@ -72,7 +77,7 @@ export default function Fretboard({
             x2={x(0) + step / 2}
             y1={top - 6}
             y2={top + 6 + (strings.length - 1) * rowGap}
-            stroke="#59634e"
+            stroke="var(--muted)"
             strokeWidth="4"
           />
         )}
@@ -91,7 +96,7 @@ export default function Fretboard({
               x2={end}
               y1={top + row * rowGap}
               y2={top + row * rowGap}
-              stroke="#a2ac98"
+              stroke="var(--guide)"
               strokeWidth={1 + row * 0.2}
             />
             {Array.from({ length: count }, (_, i) => {
@@ -103,7 +108,7 @@ export default function Fretboard({
               return pitches.includes(pc) ? (
                 <g
                   key={i}
-                  className={`fret-note${isChordTone ? " is-chord-tone" : ""}`}
+                  className={`fret-note${isRoot ? " is-root" : ""}${isChordTone ? " is-chord-tone" : ""}`}
                   role="button"
                   tabIndex={0}
                   aria-label={`${names?.[pc] ?? noteName(midi)}${isChordTone ? " 코드톤" : ""}, ${row + 1}번 현 ${start + i}프렛 듣기`}
@@ -122,20 +127,16 @@ export default function Fretboard({
                     fill="transparent"
                   />
                   <circle
+                    className="note-disc"
                     cx={x(i)}
                     cy={top + row * rowGap}
                     r="15"
-                    fill={
-                      isRoot ? "#b9f37c" : isChordTone ? "#d4e9ba" : "#303a2b"
-                    }
-                    stroke={isRoot || isChordTone ? "#89ad68" : "#303a2b"}
-                    strokeWidth="1.2"
                   />
                   <text
                     x={x(i)}
                     y={top + 5 + row * rowGap}
                     textAnchor="middle"
-                    fill={isRoot || isChordTone ? "#24351b" : "#fff"}
+                    fill="var(--ink)"
                   >
                     {label}
                   </text>

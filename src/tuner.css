@@ -1,10 +1,7 @@
 .tuner-view {
-  --tuner-ink: #1d241d;
-  --tuner-lime: #b9f37c;
-  --tuner-line: #d7ddd0;
   max-width: 1080px;
   margin: auto;
-  color: #293326;
+  color: var(--ink);
 }
 .tuner-toolbar {
   display: flex;
@@ -15,7 +12,7 @@
 }
 .tuner-mode {
   display: flex;
-  background: #e9eee3;
+  background: var(--soft);
   padding: 4px;
   border-radius: 9px;
   gap: 3px;
@@ -23,7 +20,7 @@
 .tuner-mode button {
   border: 0;
   background: transparent;
-  color: #46543d;
+  color: var(--muted);
   padding: 10px 16px;
   border-radius: 6px;
   font-size: 14px;
@@ -32,9 +29,9 @@
   white-space: nowrap;
 }
 .tuner-mode button.active {
-  color: #263324;
-  background: #fff;
-  box-shadow: 0 1px 4px #1d241d0d;
+  color: var(--ink);
+  background: var(--paper);
+  box-shadow: 0 1px 4px var(--shadow);
 }
 .tuner-preset-row {
   display: flex;
@@ -46,7 +43,7 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
-  color: #3c4935;
+  color: var(--muted);
   font-size: 14px;
   font-weight: 500;
   min-width: 0;
@@ -57,10 +54,10 @@
   height: 44px;
   min-width: 0;
   width: 100%;
-  border: 1px solid var(--tuner-line);
+  border: 1px solid var(--control-border);
   border-radius: 7px;
-  background: #fff;
-  color: #263123;
+  background: var(--paper);
+  color: var(--ink);
   font: inherit;
   font-size: 16px;
   padding: 0 11px;
@@ -69,7 +66,7 @@
 .tuner-view select:focus-visible,
 .tuner-view input:focus-visible,
 .tuner-view button:focus-visible {
-  outline: 2px solid #91bc66;
+  outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
 .tuner-preset-row > label:first-child {
@@ -83,23 +80,23 @@
   width: 44px;
   height: 44px;
   flex-shrink: 0;
-  border: 1px solid var(--tuner-line);
+  border: 1px solid var(--control-border);
   border-radius: 7px;
   display: grid;
   place-items: center;
-  background: #fff;
-  color: #586b47;
+  background: var(--paper);
+  color: var(--muted);
   cursor: pointer;
 }
 .tuner-favorite.is-favorite {
-  color: #4e7426;
-  background: #edf4e4;
+  color: var(--accent-ink);
+  background: var(--selected);
 }
 .tuner-screen {
   position: relative;
-  background: var(--tuner-ink);
-  color: #e9eee5;
-  border: 1px solid var(--tuner-ink);
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--border);
   border-radius: 13px;
   padding: 18px 25px 22px;
   overflow: hidden;
@@ -110,7 +107,7 @@
   align-items: center;
   min-height: 20px;
   gap: 12px;
-  color: #c5cfba;
+  color: var(--muted);
 }
 .tuner-listening,
 .tuner-reference-status {
@@ -122,12 +119,12 @@
 .tuner-listening i {
   width: 6px;
   height: 6px;
-  background: #8d9a80;
+  background: var(--guide);
   border-radius: 50%;
 }
 .tuner-listening i.on {
-  background: var(--tuner-lime);
-  box-shadow: 0 0 8px #b9f37c55;
+  background: var(--action);
+  box-shadow: 0 0 0 3px var(--selected);
 }
 .tuner-reference-status {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -151,7 +148,7 @@
   font-size: 26px;
   vertical-align: baseline;
   letter-spacing: 0;
-  color: #c0cbb5;
+  color: var(--muted);
   margin-left: 7px;
 }
 .tuner-cents {
@@ -161,7 +158,7 @@
   gap: 7px;
   min-height: 30px;
   font-size: 17px;
-  color: #dae2d2;
+  color: var(--ink);
 }
 .tuner-cents > span {
   font-variant-numeric: tabular-nums;
@@ -169,32 +166,32 @@
 }
 .tuner-cents .tuner-held-label {
   font-size: 14px;
-  color: #c3ccba;
+  color: var(--muted);
 }
 .tuner-note-area.is-held .tuner-pitch-note {
-  color: #b4bfa9;
+  color: var(--muted);
 }
 .tuner-note-area.is-tuned .tuner-pitch-note,
 .tuner-note-area.is-tuned .tuner-cents {
-  color: var(--tuner-lime);
+  color: var(--accent-ink);
 }
 .tuner-gauge {
   position: relative;
   width: 76%;
   height: 49px;
   margin: 0 auto 13px;
-  border-top: 1px solid #8d9c7f;
+  border-top: 1px solid var(--guide);
 }
 .tuner-gauge > i {
   position: absolute;
   top: 0;
   width: 1px;
   height: 6px;
-  background: #728463;
+  background: var(--guide);
 }
 .tuner-gauge > i.major {
   height: 11px;
-  background: #b0bda3;
+  background: var(--guide);
 }
 .tuner-gauge-zone {
   position: absolute;
@@ -202,35 +199,33 @@
   width: 8%;
   height: 17px;
   top: -8px;
-  background: #b9f37c1f;
-  border-left: 1px solid #9ad55d55;
-  border-right: 1px solid #9ad55d55;
+  background: var(--selected);
+  border-left: 1px solid var(--accent);
+  border-right: 1px solid var(--accent);
 }
 .tuner-gauge-needle {
   position: absolute;
   top: -9px;
   width: 2px;
   height: 26px;
-  background: var(--tuner-lime);
+  background: var(--action);
   transform: translateX(-50%);
   transition: left 0.12s ease-out;
-  box-shadow: 0 0 8px #b9f37c33;
 }
 .tuner-gauge-needle:before {
   content: "";
   position: absolute;
   left: -3px;
   top: -5px;
-  border-top: 5px solid var(--tuner-lime);
+  border-top: 5px solid var(--action);
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
 }
 .tuner-gauge.is-held .tuner-gauge-needle {
-  background: #bac6ae;
-  box-shadow: none;
+  background: var(--guide);
 }
 .tuner-gauge.is-held .tuner-gauge-needle:before {
-  border-top-color: #bac6ae;
+  border-top-color: var(--guide);
 }
 .tuner-gauge-labels {
   position: absolute;
@@ -239,7 +234,7 @@
   right: -12px;
   display: flex;
   justify-content: space-between;
-  color: #bec9b2;
+  color: var(--muted);
   font:
     14px ui-monospace,
     SFMono-Regular,
@@ -253,7 +248,7 @@
   gap: 24px;
   flex-wrap: wrap;
   font-size: 14px;
-  color: #bdc9b0;
+  color: var(--muted);
 }
 .tuner-measurements > span {
   display: inline-flex;
@@ -267,7 +262,7 @@
     Menlo,
     monospace;
   font-weight: 400;
-  color: #edf2e7;
+  color: var(--ink);
 }
 .tuner-reference {
   display: inline-grid;
@@ -276,12 +271,12 @@
   min-height: 32px;
   border: 0;
   background: transparent;
-  color: #d0ddc3;
+  color: var(--muted);
   padding: 5px;
   cursor: pointer;
 }
 .tuner-reference:hover {
-  color: var(--tuner-lime);
+  color: var(--action-hover);
 }
 .tuner-string-picker {
   display: flex;
@@ -300,19 +295,19 @@
   padding: 7px 10px;
   border-radius: 6px;
   background: transparent;
-  color: #425536;
+  color: var(--muted);
   font-size: 14px;
   cursor: pointer;
   line-height: 1.2;
 }
 .tuner-string-picker button.selected {
-  border-color: #b5c99f;
-  background: #e9f2df;
-  color: #2d471c;
+  border-color: var(--control-border);
+  background: var(--selected);
+  color: var(--accent-ink);
 }
 .tuner-string-picker button small {
   font-size: 14px;
-  color: #5e714f;
+  color: var(--muted);
 }
 .tuner-input-fields {
   display: grid;
@@ -335,23 +330,26 @@
   font-size: 14px;
 }
 .tuner-start.primary {
-  border: 1px solid var(--tuner-ink);
-  color: #f6faf1;
-  background: var(--tuner-ink);
+  border: 1px solid var(--action);
+  color: var(--paper);
+  background: var(--action);
   border-radius: 7px;
 }
+.tuner-start.primary:hover {
+  background: var(--action-hover);
+}
 .tuner-start.secondary {
-  border: 1px solid var(--tuner-line);
-  background: #fff;
+  border: 1px solid var(--control-border);
+  background: var(--paper);
   border-radius: 7px;
-  color: #34462a;
+  color: var(--muted);
 }
 .tuner-level-row {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-top: 16px;
-  color: #46573a;
+  color: var(--muted);
   font:
     14px ui-monospace,
     SFMono-Regular,
@@ -371,14 +369,14 @@
   position: relative;
   height: 7px;
   flex: 1;
-  background: #dfe6d6;
+  background: var(--control-border);
   border-radius: 2px;
   overflow: hidden;
 }
 .tuner-level-meter > i {
   height: 100%;
   display: block;
-  background: #7b9d5f;
+  background: var(--action);
   transition: width 0.1s linear;
 }
 .tuner-level-meter > b {
@@ -387,7 +385,7 @@
   top: 0;
   height: 100%;
   width: 1px;
-  background: #fff;
+  background: var(--paper);
 }
 .tuner-level-row.is-clipping {
   color: #a93828;
@@ -413,20 +411,20 @@
 .tuner-settings-trigger {
   width: 44px;
   height: 44px;
-  border: 1px solid var(--tuner-line);
+  border: 1px solid var(--control-border);
   background: var(--paper);
 }
 .tuner-settings {
   width: min(470px, calc(100% - 24px));
   max-height: calc(100dvh - 24px);
   padding: 16px;
-  border: 1px solid var(--tuner-line);
+  border: 1px solid var(--control-border);
   border-radius: 14px;
   color: var(--ink);
   background: var(--paper);
 }
 .tuner-settings::backdrop {
-  background: #17210d66;
+  background: var(--backdrop);
 }
 .tuner-settings .section-heading {
   margin-bottom: 8px;
@@ -463,7 +461,7 @@
   background: transparent;
   display: grid;
   place-items: center;
-  color: #3c542c;
+  color: var(--accent-ink);
   min-width: 38px;
   min-height: 38px;
   padding: 8px;
@@ -501,12 +499,12 @@
   place-items: center;
   border: 0;
   background: transparent;
-  color: #3c542c;
+  color: var(--accent-ink);
   padding: 8px 0 3px;
   cursor: pointer;
 }
 .tuner-custom-strings > div > button.playing {
-  color: #46771f;
+  color: var(--action);
 }
 .tuner-poly-area {
   padding: 13px 0 0;
@@ -520,7 +518,7 @@
     SFMono-Regular,
     Menlo,
     monospace;
-  color: #ccd6c0;
+  color: var(--muted);
   margin-bottom: 14px;
 }
 .tuner-poly-grid {
@@ -534,7 +532,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-right: 1px solid #ffffff12;
+  border-right: 1px solid var(--border);
   min-width: 0;
 }
 .tuner-poly-string:last-child {
@@ -542,14 +540,14 @@
 }
 .tuner-string-number {
   font-size: 14px;
-  color: #c0cdb2;
+  color: var(--muted);
   margin-bottom: 7px;
 }
 .tuner-poly-string > b {
   font-size: 29px;
   font-weight: 450;
   line-height: 1.2;
-  color: #c1cdb6;
+  color: var(--muted);
   letter-spacing: -1px;
 }
 .tuner-poly-string > b sub {
@@ -557,7 +555,7 @@
   vertical-align: baseline;
   letter-spacing: 0;
   margin-left: 1px;
-  color: #c0cdb2;
+  color: var(--muted);
 }
 .tuner-mini-gauge {
   height: 70px;
@@ -567,8 +565,8 @@
   background: linear-gradient(
     to bottom,
     transparent 49%,
-    #a1b68d 49%,
-    #a1b68d 50%,
+    var(--guide) 49%,
+    var(--guide) 50%,
     transparent 50%
   );
 }
@@ -578,7 +576,7 @@
   left: 50%;
   height: 100%;
   width: 1px;
-  background: #748a60;
+  background: var(--guide);
 }
 .tuner-mini-gauge:after {
   position: absolute;
@@ -587,26 +585,27 @@
   right: 4px;
   bottom: 44%;
   height: 12%;
-  background: #b9f37c0d;
-  border-top: 1px solid #b9f37c22;
-  border-bottom: 1px solid #b9f37c22;
+  background: var(--soft);
+  border-top: 1px solid var(--accent);
+  border-bottom: 1px solid var(--accent);
 }
 .tuner-mini-gauge > i {
   position: absolute;
   height: 3px;
   left: 2px;
   right: 2px;
-  background: #bdc9b2;
+  background: var(--muted);
   z-index: 1;
   transform: translateY(50%);
   transition: bottom 0.12s ease-out;
 }
 .tuner-poly-string.is-tuned .tuner-mini-gauge > i {
-  background: var(--tuner-lime);
+  background: var(--action);
 }
 .tuner-poly-string.is-tuned > b,
 .tuner-poly-string.is-tuned .tuner-string-cents {
-  color: var(--tuner-lime);
+  color: var(--accent-ink);
+  font-weight: 650;
 }
 .tuner-string-cents {
   font:
@@ -614,7 +613,7 @@
     SFMono-Regular,
     Menlo,
     monospace;
-  color: #d2ddc6;
+  color: var(--muted);
   min-height: 18px;
 }
 .tuner-string-frequency {
@@ -623,18 +622,18 @@
     SFMono-Regular,
     Menlo,
     monospace;
-  color: #bfccb2;
+  color: var(--muted);
   margin-top: 8px;
   text-align: center;
   min-height: 35px;
 }
-.tuner-poly-string.has-signal > b {
-  color: #e3ecd9;
+.tuner-poly-string.has-signal:not(.is-tuned) > b {
+  color: var(--ink);
 }
 .tuner-poly-string.is-held > b,
 .tuner-poly-string.is-held .tuner-string-cents,
 .tuner-poly-string.is-held .tuner-string-frequency {
-  color: #bec8b4;
+  color: var(--muted);
 }
 .tuner-poly-reference {
   display: grid;
@@ -643,12 +642,12 @@
   min-height: 36px;
   border: 0;
   background: transparent;
-  color: #c2d2b2;
+  color: var(--muted);
   padding: 8px;
   cursor: pointer;
 }
 .tuner-poly-reference:hover {
-  color: var(--tuner-lime);
+  color: var(--action-hover);
 }
 @media (prefers-reduced-motion: reduce) {
   .tuner-gauge-needle,

@@ -9,7 +9,7 @@
   overscroll-behavior: contain;
 }
 .chord-scale-dialog::backdrop {
-  background: #17210d6b;
+  background: var(--backdrop);
 }
 .chord-scale-head,
 .chord-scale-selection,
@@ -42,7 +42,7 @@
 }
 .chord-scale-selection > select {
   flex: 1;
-  background: #f4f8ef;
+  background: var(--chrome);
   font-weight: 650;
 }
 .chord-scale-selection > button {
@@ -59,13 +59,13 @@
   min-width: 27px;
   text-align: center;
   border-radius: 5px;
-  background: #f0f2eb;
+  background: var(--soft);
   font-size: 14px;
 }
 .chord-scale-notes > .is-chord-tone,
 .chord-tone-legend > i {
-  background: #d4e9ba;
-  color: #24351b;
+  background: var(--selected);
+  color: var(--accent-ink);
 }
 .chord-scale-reason {
   margin: 0 0 8px;
@@ -86,7 +86,7 @@
 .chord-tone-legend > i {
   width: 10px;
   height: 10px;
-  border: 1px solid #89ad68;
+  border: 1px solid var(--action);
   border-radius: 50%;
 }
 .chord-scale-dialog .music-fretboard {
@@ -102,11 +102,11 @@
   white-space: nowrap;
   font-size: 14px;
   font-weight: 600;
-  color: #3c4e30;
+  color: var(--accent-ink);
   border-radius: 7px;
   padding: 5px 8px;
   min-height: 42px;
-  background: #edf4e5;
+  background: var(--selected);
 }
 .chord-result-actions {
   display: flex;

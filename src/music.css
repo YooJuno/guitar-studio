@@ -27,7 +27,7 @@
   flex-direction: column;
   gap: 9px;
   font-size: 14px;
-  color: #46513f;
+  color: var(--muted);
   min-width: 125px;
 }
 .music-control-line > label:nth-child(2) {
@@ -37,11 +37,11 @@
 .music-control-line select {
   width: 100%;
   min-height: 44px;
-  background: #fafbf7;
-  border: 1px solid #dfe4d6;
+  background: var(--chrome);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0 36px 0 13px;
-  color: #30382a;
+  color: var(--ink);
   font-size: 14px;
 }
 .music-control-line .music-check {
@@ -52,7 +52,7 @@
   font-size: 14px;
 }
 .music-check input {
-  accent-color: #46513f;
+  accent-color: var(--muted);
   width: 16px;
   height: 16px;
 }
@@ -78,25 +78,25 @@
   gap: 7px;
 }
 .music-note-list > span {
-  border: 1px solid #e3e7dc;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 6px 11px;
   font-size: 14px;
-  background: #f8faf4;
+  background: var(--chrome);
 }
 .music-note-list > .tonic {
-  background: #e8f7d9;
-  border-color: #46513f;
+  background: var(--selected);
+  border-color: var(--muted);
 }
 .music-favorite {
   border-radius: 8px !important;
-  color: #46513f;
+  color: var(--muted);
   flex-shrink: 0;
 }
 .music-favorite.saved,
 .music-library-filters > .saved {
-  color: #46513f;
-  background: #edf6e4;
+  color: var(--muted);
+  background: var(--selected);
 }
 .music-diagram-grid {
   display: grid;
@@ -107,9 +107,9 @@
 .music-shape {
   margin: 0;
   padding: 15px 12px 16px;
-  border: 1px solid #e3e7dd;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: #fdfefb;
+  background: var(--chrome);
 }
 .music-shape figcaption {
   display: flex;
@@ -120,7 +120,7 @@
 .music-shape figcaption > span {
   font-size: 14px;
   letter-spacing: 0.12em;
-  color: #46513f;
+  color: var(--muted);
 }
 .chord-diagram {
   display: block;
@@ -129,7 +129,7 @@
   margin: 0 auto 8px;
 }
 .diagram-fret {
-  fill: #46513f;
+  fill: var(--muted);
   font-size: 14px;
 }
 .diagram-note {
@@ -137,11 +137,11 @@
   font-weight: 500;
 }
 .diagram-string {
-  fill: #5b6652;
+  fill: var(--muted);
   font-size: 14px;
 }
 .diagram-tab {
-  fill: #46513f;
+  fill: var(--muted);
   font-size: 14px;
 }
 .music-listen {
@@ -151,18 +151,18 @@
   gap: 7px !important;
   min-height: 36px !important;
   padding: 8px !important;
-  background: #fff !important;
+  background: var(--paper) !important;
 }
 .note-dot {
   display: inline-block;
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #303a2b;
+  background: var(--action);
 }
 .note-dot.root {
-  background: #b9f37c;
-  border: 1px solid #9fc969;
+  background: var(--accent);
+  border: 1px solid var(--control-border);
 }
 .music-error {
   padding: 12px 14px;
@@ -177,12 +177,12 @@
   justify-items: center;
   text-align: center;
   gap: 9px;
-  color: #46513f;
+  color: var(--muted);
   padding: 40px 20px;
 }
 .music-empty h3 {
   font-size: 15px;
-  color: #4c5a40;
+  color: var(--muted);
 }
 .music-empty p {
   font-size: 14px;
@@ -209,9 +209,9 @@
 .music-fret-scroll {
   overflow-x: auto;
   margin-top: 24px;
-  border: 1px solid #e3e7dc;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: #fcfdf9;
+  background: var(--chrome);
   padding: 8px 3px 0;
   scrollbar-width: thin;
 }
@@ -222,29 +222,47 @@
 }
 .fret-number {
   font-size: 14px;
-  fill: #46513f;
+  fill: var(--muted);
 }
 .fret-string-label {
   font-size: 14px;
-  fill: #46513f;
+  fill: var(--muted);
 }
 .fret-note {
   cursor: pointer;
+}
+.note-disc {
+  fill: var(--soft);
+  stroke: var(--control-border);
+  stroke-width: 1.2;
+}
+.is-chord-tone .note-disc {
+  fill: var(--selected);
+  stroke: var(--guide);
+}
+.is-root .note-disc {
+  fill: var(--accent);
+  stroke: var(--action);
+  stroke-width: 1.6;
 }
 .fret-note text {
   font-size: 14px;
   font-weight: 500;
   pointer-events: none;
 }
-.fret-note:hover circle {
-  stroke: #77a54b;
+.fret-note.is-root text,
+.is-root .diagram-note {
+  font-weight: 700;
+}
+.fret-note:hover .note-disc {
+  stroke: var(--action);
   stroke-width: 3;
 }
 .fret-note:focus {
   outline: none;
 }
-.fret-note:focus circle {
-  stroke: #3e70bd;
+.fret-note:focus-visible .note-disc {
+  stroke: var(--focus);
   stroke-width: 3;
 }
 .music-jazz-layout {
@@ -272,11 +290,11 @@
   align-items: center;
   gap: 9px;
   min-height: 41px;
-  border: 1px solid #dde4d3;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fafcf6;
+  background: var(--chrome);
   padding: 0 11px;
-  color: #46513f;
+  color: var(--muted);
 }
 .music-search input {
   border: 0 !important;
@@ -296,15 +314,15 @@
 .music-library-filters select {
   flex: 1;
   min-width: 0;
-  border: 1px solid #e1e6d8;
+  border: 1px solid var(--border);
   border-radius: 7px;
-  background: #fff;
+  background: var(--paper);
   padding: 9px 11px;
   font-size: 14px;
-  color: #46513f;
+  color: var(--muted);
 }
 .music-library-filters .icon-button {
-  border: 1px solid #e1e6d8;
+  border: 1px solid var(--border);
   border-radius: 7px;
 }
 .music-song-list {
@@ -324,8 +342,8 @@
   padding-right: 5px;
 }
 .music-song.selected {
-  background: #f0f6e8;
-  border-color: #46513f;
+  background: var(--soft);
+  border-color: var(--muted);
 }
 .music-song-select {
   border: 0;
@@ -338,7 +356,7 @@
   padding: 15px 9px;
   flex: 1;
   min-width: 0;
-  color: #3c4931;
+  color: var(--muted);
 }
 .music-song-select strong {
   font-size: 14px;
@@ -347,16 +365,16 @@
 }
 .music-song-select > span {
   font-size: 14px;
-  color: #46513f;
+  color: var(--muted);
 }
 .music-song-select i {
   font-style: normal;
   margin: 0 3px;
-  color: #46513f;
+  color: var(--muted);
 }
 .music-song-select > small {
   font-size: 14px;
-  color: #46513f;
+  color: var(--muted);
 }
 .music-song .music-favorite {
   width: 27px;
@@ -388,7 +406,7 @@
   background: white;
   border-radius: 8px;
   margin: 13px 0 23px;
-  color: #30372d;
+  color: var(--ink);
 }
 .music-notation svg {
   max-width: 100%;
@@ -413,26 +431,26 @@
 }
 .music-section-letter {
   font-size: 14px;
-  color: #46513f;
+  color: var(--muted);
   font-weight: 600;
   letter-spacing: 0.03em;
 }
 .music-bar-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  border-top: 1px solid #dce3d0;
-  border-left: 1px solid #dce3d0;
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
 }
 .music-bar {
   min-height: 68px;
   padding: 9px 10px 13px;
-  border-right: 1px solid #dce3d0;
-  border-bottom: 1px solid #dce3d0;
-  background: #fbfcf8;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--chrome);
 }
 .music-bar > small {
   font-size: 14px;
-  color: #46513f;
+  color: var(--muted);
   display: block;
   margin-bottom: 6px;
 }
@@ -449,19 +467,19 @@
   font-size: 14px;
   line-height: 1.6;
   font-weight: 500;
-  color: #526442;
+  color: var(--muted);
   cursor: pointer;
   white-space: nowrap;
 }
 .music-bar button:hover {
-  color: #2c5014;
+  color: var(--accent-ink);
   text-decoration: underline;
 }
 .music-source-link {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: #46513f;
+  color: var(--muted);
   margin-top: 10px;
   font-size: 14px;
 }
@@ -496,7 +514,7 @@
   align-items: center;
   gap: 9px;
   padding-top: 18px;
-  color: #46513f;
+  color: var(--muted);
   font-size: 14px;
 }
 .music-pdf-name > span {
@@ -512,16 +530,16 @@
 .music-pdf-preview {
   width: 100%;
   height: 650px;
-  border: 1px solid #e4eadb;
+  border: 1px solid var(--border);
   border-radius: 8px;
   margin-top: 12px;
-  background: #f5f7f0;
+  background: var(--soft);
 }
 .music-workspace button:focus-visible,
 .music-jazz-layout button:focus-visible,
 .music-workspace select:focus-visible,
 .music-jazz-layout select:focus-visible {
-  outline: 2px solid #71994e;
+  outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
 @media (min-width: 1400px) {
@@ -684,7 +702,7 @@
   }
 }
 .music-help {
-  color: #46513f;
+  color: var(--muted);
   font-size: 14px;
   line-height: 1.8;
   padding: 2px 3px;
@@ -701,7 +719,7 @@
   margin: 9px 0;
 }
 .music-score-help {
-  border-top: 1px solid #e9eddf;
+  border-top: 1px solid var(--border);
   margin-top: 22px;
   padding-top: 14px;
 }
@@ -718,29 +736,29 @@
   flex-wrap: wrap;
   margin-top: 17px;
   padding-top: 15px;
-  border-top: 1px solid #edf0e6;
-  color: #46513f;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
 }
 .music-saved > svg {
   margin-right: 3px;
 }
 .music-saved > button {
-  border: 1px solid #e2e8d9;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fafcf6;
+  background: var(--chrome);
   padding: 5px 9px;
-  color: #46513f;
+  color: var(--muted);
   font-size: 14px;
   line-height: 1.4;
 }
 .music-saved > button:hover {
-  background: #edf5e5;
-  border-color: #46513f;
+  background: var(--selected);
+  border-color: var(--muted);
 }
 .music-saved > button.active {
-  background: #e8f3dc;
-  border-color: #46513f;
-  color: #4e6c36;
+  background: var(--selected);
+  border-color: var(--muted);
+  color: var(--accent-ink);
 }
 @media (max-width: 1100px) {
   .music-jazz-layout {
@@ -759,12 +777,12 @@
     align-items: center;
     gap: 15px;
     text-align: left;
-    color: #46513f;
+    color: var(--muted);
     padding: 3px 0;
   }
   .music-library-toggle > span {
     font-size: 14px;
-    color: #46513f;
+    color: var(--muted);
     flex-shrink: 0;
   }
   .music-library-toggle > strong {
@@ -811,7 +829,7 @@
 /* Musical controls and data retain readable sizing across all viewports. */
 .music-workspace,
 .music-jazz-layout {
-  color: #222b20;
+  color: var(--ink);
   font-size: 14px;
 }
 .music-control-line {
@@ -819,16 +837,16 @@
 }
 .music-control-line > label,
 .music-control-line .music-check {
-  color: #46513f;
+  color: var(--muted);
   font-size: 14px;
 }
 .music-control-line select,
 .music-library-filters select {
   font-size: 16px;
-  color: #222b20;
+  color: var(--ink);
 }
 .music-favorite {
-  color: #46513f;
+  color: var(--muted);
   width: 40px;
   height: 40px;
 }
@@ -852,22 +870,22 @@
 .diagram-string,
 .diagram-tab,
 .diagram-fret {
-  fill: #46513f;
+  fill: var(--muted);
 }
 .music-listen {
   font-size: 14px !important;
   min-height: 42px !important;
-  color: #222b20;
+  color: var(--ink);
 }
 .music-note-list > span,
 .music-saved > button {
   font-size: 14px;
-  color: #222b20;
+  color: var(--ink);
 }
 .music-empty,
 .music-empty p {
   font-size: 14px;
-  color: #46513f;
+  color: var(--muted);
 }
 .music-fretboard {
   min-width: 960px;
@@ -875,28 +893,28 @@
 .fret-number,
 .fret-string-label {
   font-size: 14px;
-  fill: #46513f;
+  fill: var(--muted);
 }
 .fret-note text {
   font-size: 14px;
 }
 .music-song-select strong {
-  color: #222b20;
+  color: var(--ink);
   font-size: 15px;
 }
 .music-song-select > span {
-  color: #46513f;
+  color: var(--muted);
   font-size: 14px;
 }
 .music-search {
-  color: #46513f;
+  color: var(--muted);
 }
 .music-search input {
   font-size: 16px !important;
-  color: #222b20 !important;
+  color: var(--ink) !important;
 }
 .music-search input::placeholder {
-  color: #46513f;
+  color: var(--muted);
   opacity: 1;
 }
 .music-song .music-favorite {
@@ -912,7 +930,7 @@
   margin-bottom: 20px !important;
 }
 .music-song-title {
-  color: #222b20;
+  color: var(--ink);
   font-size: 28px;
   margin: 0;
 }
@@ -922,46 +940,46 @@
 }
 .music-chart-heading h3 {
   font-size: 16px;
-  color: #222b20;
+  color: var(--ink);
 }
 .music-section-letter {
   font-size: 14px;
-  color: #46513f;
+  color: var(--muted);
   letter-spacing: 0;
 }
 .music-bar > small {
   font-size: 14px;
-  color: #46513f;
+  color: var(--muted);
 }
 .music-bar button {
   font-size: 16px;
-  color: #222b20;
+  color: var(--ink);
 }
 .music-bar {
   min-height: 80px;
 }
 .music-score-link {
   font-size: 14px;
-  color: #222b20;
+  color: var(--ink);
 }
 .music-notation > div {
   min-width: 800px;
 }
 .music-source-link {
-  color: #46513f;
+  color: var(--muted);
   font-size: 14px;
 }
 .music-pdf-card h3 {
   font-size: 16px;
-  color: #222b20;
+  color: var(--ink);
 }
 .music-pdf-card .button,
 .music-pdf-name {
   font-size: 14px;
-  color: #222b20;
+  color: var(--ink);
 }
 .music-help {
-  color: #46513f;
+  color: var(--muted);
   font-size: 14px;
   padding: 0;
 }
@@ -972,20 +990,20 @@
   display: grid;
   place-items: center;
   border-radius: 8px;
-  color: #46513f;
+  color: var(--muted);
 }
 .music-help summary::-webkit-details-marker {
   display: none;
 }
 .music-help summary:hover {
-  background: #eef3e8;
+  background: var(--soft);
 }
 .music-help[open] summary {
-  background: #e8f3dc;
+  background: var(--selected);
 }
 .music-help p {
   font-size: 14px;
-  color: #46513f;
+  color: var(--muted);
   line-height: 1.7;
 }
 .music-score-help {
@@ -995,7 +1013,7 @@
 }
 @media (max-width: 1100px) {
   .music-library-toggle {
-    color: #222b20;
+    color: var(--ink);
   }
   .music-library-toggle > strong {
     font-size: 16px;
@@ -1182,7 +1200,7 @@
     min-height: 40px;
   }
   .music-sheet {
-    border: 1px solid #e0e6d7;
+    border: 1px solid var(--border);
     border-radius: 10px;
   }
   .music-sheet-toggle {
@@ -1196,11 +1214,11 @@
     border-radius: 9px;
     font-size: 15px;
     font-weight: 650;
-    color: #26301f;
+    color: var(--ink);
   }
   .music-sheet-toggle:hover,
   .music-sheet-toggle[aria-expanded="true"] {
-    background: #f1f5ea;
+    background: var(--soft);
   }
   .music-sheet-toggle > span {
     flex: 1;
@@ -1245,7 +1263,7 @@
     border: 1px solid var(--border);
     border-radius: 11px;
     background: var(--paper);
-    box-shadow: 0 8px 24px #17210d17;
+    box-shadow: 0 8px 24px var(--shadow);
   }
 }
 @media screen and (max-width: 680px) {
@@ -1277,7 +1295,7 @@
     height: 42px;
   }
   .music-voicing .voicing-arpeggio[aria-pressed="true"] {
-    background: #dcebcf;
+    background: var(--selected);
   }
   .music-voicing .music-listen {
     width: auto;

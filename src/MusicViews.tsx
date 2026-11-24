@@ -115,7 +115,9 @@ function ChordDiagram({
           x2="218"
           y1={top + i * spacing}
           y2={top + i * spacing}
-          stroke={i === 0 && first === 1 ? "#30362e" : "#d7dbd1"}
+          stroke={
+            i === 0 && first === 1 ? "var(--muted)" : "var(--control-border)"
+          }
           strokeWidth={i === 0 && first === 1 ? 5 : 1.4}
         />
       ))}
@@ -126,11 +128,11 @@ function ChordDiagram({
             x2={x(i)}
             y1={top}
             y2={top + 4 * spacing}
-            stroke="#687360"
+            stroke="var(--guide)"
             strokeWidth={Math.max(1, 2 - i * 0.16)}
           />
           {frets[i] < 0 ? (
-            <g stroke="#46513f" strokeWidth="1.6">
+            <g stroke="var(--muted)" strokeWidth="1.6">
               <path d={`M ${x(i) - 4} 43 l 8 8 M ${x(i) + 4} 43 l -8 8`} />
             </g>
           ) : frets[i] === 0 ? (
@@ -139,22 +141,24 @@ function ChordDiagram({
               cy="47"
               r="5"
               fill="none"
-              stroke="#6c7565"
+              stroke="var(--muted)"
               strokeWidth="1.5"
             />
           ) : (
-            <g>
+            <g
+              className={(midi + frets[i]) % 12 === root ? "is-root" : undefined}
+            >
               <circle
+                className="note-disc"
                 cx={x(i)}
                 cy={top + (frets[i] - first + 0.5) * spacing}
                 r="13"
-                fill={(midi + frets[i]) % 12 === root ? "#b9f37c" : "#30362e"}
               />
               <text
                 x={x(i)}
                 y={top + (frets[i] - first + 0.5) * spacing + 4}
                 textAnchor="middle"
-                fill={(midi + frets[i]) % 12 === root ? "#24351b" : "white"}
+                fill="var(--ink)"
                 className="diagram-note"
               >
                 {noteName(midi + frets[i], false)}
