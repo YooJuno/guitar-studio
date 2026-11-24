@@ -319,16 +319,14 @@ export default function TunerView({
   const targetIndex =
     target === "auto" ? nearest : Math.min(target, strings.length - 1);
   const targetFrequency = frequencies[targetIndex];
+  const targetNote = noteName(strings[targetIndex]);
   const cents = pitch
     ? 1200 * Math.log2(pitch.frequency / targetFrequency)
     : null;
   const inTune = cents !== null && !pitch?.held && Math.abs(cents) <= 4;
-  const measuredNote = pitch
-    ? noteName(Math.round(frequencyToMidi(pitch.frequency, a4)), false)
-    : "—";
-  const measuredOctave = pitch
-    ? Math.floor(Math.round(frequencyToMidi(pitch.frequency, a4)) / 12) - 1
-    : "";
+  const measuredMidi = pitch
+    ? Math.round(frequencyToMidi(pitch.frequency, a4))
+    : null;
   const meter =
     level > 0 ? clamp(((20 * Math.log10(level) + 80) / 80) * 100, 0, 100) : 0;
   const detectedCount = poly.filter((result) => result && !result.held).length;
@@ -344,7 +342,7 @@ export default function TunerView({
             aria-pressed={mode === "single"}
             onClick={() => setMode("single")}
           >
-            한 현씩
+            한 현
           </button>
           <button
             type="button"
@@ -353,7 +351,7 @@ export default function TunerView({
             title="동시 튜닝"
             onClick={() => setMode("poly")}
           >
-            동시에
+            동시
           </button>
         </div>
         <div className="tuner-actions">
@@ -474,31 +472,35 @@ export default function TunerView({
             <div
               className={`tuner-note-area ${inTune ? "is-tuned" : ""} ${pitch?.held ? "is-held" : ""}`}
             >
-              <div className="tuner-pitch-note">
-                {measuredNote}
-                <sub>{measuredOctave}</sub>
-              </div>
-              <div className="tuner-cents">
-                {cents === null ? null : pitch?.held ? (
-                  <span
-                    className="tuner-held-label"
-                    title="신호가 약해 마지막 측정값을 잠시 유지합니다. 현재 튜닝 판정이 아닙니다."
-                  >
-                    마지막 측정 · {signed(cents)} ¢
-                  </span>
-                ) : (
-                  <>
-                    {inTune ? (
-                      <Check size={19} aria-label="정음" />
+              {measuredMidi === null || cents === null ? (
+                <span className="tuner-waiting">
+                  {starting ? "연결 중" : active ? "신호 대기" : "입력 대기"}
+                </span>
+              ) : (
+                <>
+                  <div className="tuner-pitch-note">
+                    {noteName(measuredMidi, false)}
+                    <sub>{Math.floor(measuredMidi / 12) - 1}</sub>
+                  </div>
+                  <div className="tuner-cents">
+                    {pitch?.held ? (
+                      <span
+                        className="tuner-held-label"
+                        title="신호가 약해 마지막 측정값을 잠시 유지합니다. 현재 튜닝 판정이 아닙니다."
+                      >
+                        마지막 측정
+                      </span>
+                    ) : inTune ? (
+                      <Check size={18} aria-label="정음" />
                     ) : cents < 0 ? (
-                      <ArrowUp size={19} aria-label="높이기" />
+                      <ArrowUp size={18} aria-label="높이기" />
                     ) : (
-                      <ArrowDown size={19} aria-label="낮추기" />
+                      <ArrowDown size={18} aria-label="낮추기" />
                     )}
                     <span>{signed(cents)} ¢</span>
-                  </>
-                )}
-              </div>
+                  </div>
+                </>
+              )}
             </div>
             <div
               className={`tuner-gauge ${pitch?.held ? "is-held" : ""}`}
@@ -530,27 +532,29 @@ export default function TunerView({
               </div>
             </div>
             <div className="tuner-measurements">
-              <span>
-                {pitch?.held ? "마지막" : "측정"}{" "}
-                <b>{pitch ? `${pitch.frequency.toFixed(2)} Hz` : "— Hz"}</b>
-              </span>
-              <span>
-                목표{" "}
-                <b>
-                  {target === "auto" && !pitch
-                    ? "자동 선택"
-                    : `${noteName(strings[targetIndex])} · ${targetFrequency.toFixed(2)} Hz`}
-                </b>
+              <div className="tuner-readout">
+                <span>{pitch?.held ? "마지막" : "측정"}</span>
+                <b>{pitch ? `${pitch.frequency.toFixed(2)} Hz` : "—"}</b>
+              </div>
+              <div className="tuner-target-readout">
+                <div className="tuner-readout">
+                  <span>기준</span>
+                  <b>
+                    {target === "auto" && !pitch
+                      ? "자동"
+                      : `${targetNote} · ${targetFrequency.toFixed(2)} Hz`}
+                  </b>
+                </div>
                 <button
                   type="button"
-                  className="tuner-reference"
-                  title={`${noteName(strings[targetIndex])} 기준음`}
-                  aria-label={`${noteName(strings[targetIndex])} 기준음 듣기`}
+                  className="icon-button tuner-reference"
+                  title={`${targetNote} 기준음`}
+                  aria-label={`${targetNote} 기준음 듣기`}
                   onClick={() => void sound(targetIndex)}
                 >
                   <Volume2 size={15} />
                 </button>
-              </span>
+              </div>
             </div>
           </>
         ) : (

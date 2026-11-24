@@ -2,6 +2,7 @@
   max-width: 1080px;
   margin: auto;
   color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 .tuner-toolbar {
   display: flex;
@@ -126,30 +127,32 @@
   background: var(--action);
   box-shadow: 0 0 0 3px var(--selected);
 }
-.tuner-reference-status {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
 .tuner-note-area {
+  display: grid;
+  align-content: center;
   text-align: center;
-  padding: 18px 0;
-  min-height: 175px;
+  min-height: 142px;
+  padding-bottom: 10px;
+}
+.tuner-waiting {
+  font-size: 22px;
+  font-weight: 550;
+  color: var(--muted);
 }
 .tuner-pitch-note {
-  font-size: 102px;
-  line-height: 1.15;
-  font-weight: 450;
-  letter-spacing: -4px;
-  font-variant-numeric: tabular-nums;
-  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(52px, 8vw, 80px);
+  line-height: 1.04;
+  font-weight: 650;
+  letter-spacing: -0.035em;
 }
 .tuner-pitch-note sub {
   position: relative;
   bottom: 0;
-  font-size: 26px;
+  font-size: 0.36em;
   vertical-align: baseline;
   letter-spacing: 0;
   color: var(--muted);
-  margin-left: 7px;
+  margin-left: 5px;
 }
 .tuner-cents {
   display: flex;
@@ -157,15 +160,13 @@
   justify-content: center;
   gap: 7px;
   min-height: 30px;
-  font-size: 17px;
+  font-size: 19px;
+  font-weight: 600;
   color: var(--ink);
-}
-.tuner-cents > span {
-  font-variant-numeric: tabular-nums;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 .tuner-cents .tuner-held-label {
   font-size: 14px;
+  font-weight: 500;
   color: var(--muted);
 }
 .tuner-note-area.is-held .tuner-pitch-note {
@@ -177,9 +178,9 @@
 }
 .tuner-gauge {
   position: relative;
-  width: 76%;
-  height: 49px;
-  margin: 0 auto 13px;
+  width: min(86%, 660px);
+  height: 47px;
+  margin: 0 auto 8px;
   border-top: 1px solid var(--guide);
 }
 .tuner-gauge > i {
@@ -200,6 +201,7 @@
   height: 17px;
   top: -8px;
   background: var(--selected);
+  border-radius: 4px;
   border-left: 1px solid var(--accent);
   border-right: 1px solid var(--accent);
 }
@@ -235,48 +237,45 @@
   display: flex;
   justify-content: space-between;
   color: var(--muted);
-  font:
-    14px ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    monospace;
+  font-size: 14px;
+}
+.tuner-gauge-labels > span:nth-child(2) {
+  color: var(--ink);
+  font-weight: 650;
 }
 .tuner-measurements {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(100%, 570px);
+  margin: 0 auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.tuner-readout {
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  min-width: 0;
   font-size: 14px;
   color: var(--muted);
 }
-.tuner-measurements > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-.tuner-measurements b {
-  font:
-    14px ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    monospace;
-  font-weight: 400;
+.tuner-readout b {
+  font-size: 16px;
+  font-weight: 600;
   color: var(--ink);
 }
-.tuner-reference {
-  display: inline-grid;
-  place-items: center;
-  min-width: 32px;
-  min-height: 32px;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  padding: 5px;
-  cursor: pointer;
+.tuner-target-readout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding-inline-start: 12px;
+  border-inline-start: 1px solid var(--border);
 }
-.tuner-reference:hover {
-  color: var(--action-hover);
+.tuner-reference {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
 }
 .tuner-string-picker {
   display: flex;
@@ -350,11 +349,7 @@
   gap: 12px;
   margin-top: 16px;
   color: var(--muted);
-  font:
-    14px ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    monospace;
+  font-size: 14px;
   min-height: 20px;
 }
 .tuner-level-row > svg {
@@ -453,7 +448,6 @@
 .tuner-calibration input[type="number"] {
   width: 80px;
   height: 40px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 .tuner-calibration button,
 .tuner-custom-heading button {
@@ -513,11 +507,7 @@
 .tuner-poly-heading {
   text-align: right;
   min-height: 19px;
-  font:
-    14px ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    monospace;
+  font-size: 14px;
   color: var(--muted);
   margin-bottom: 14px;
 }
@@ -545,7 +535,7 @@
 }
 .tuner-poly-string > b {
   font-size: 29px;
-  font-weight: 450;
+  font-weight: 600;
   line-height: 1.2;
   color: var(--muted);
   letter-spacing: -1px;
@@ -608,20 +598,13 @@
   font-weight: 650;
 }
 .tuner-string-cents {
-  font:
-    14px ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    monospace;
+  font-size: 14px;
   color: var(--muted);
   min-height: 18px;
 }
 .tuner-string-frequency {
-  font:
-    14px/1.35 ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    monospace;
+  font-size: 14px;
+  line-height: 1.35;
   color: var(--muted);
   margin-top: 8px;
   text-align: center;
@@ -690,17 +673,13 @@
     border-radius: 10px;
   }
   .tuner-note-area {
-    padding: 10px 0;
-    min-height: 108px;
+    min-height: 116px;
   }
   .tuner-pitch-note {
-    font-size: 78px;
+    font-size: 64px;
   }
   .tuner-gauge {
     width: 88%;
-  }
-  .tuner-measurements {
-    gap: 8px 16px;
   }
   .tuner-string-picker {
     gap: 3px;
@@ -742,10 +721,13 @@
     width: 40px;
   }
   .tuner-pitch-note {
-    font-size: 70px;
+    font-size: 58px;
   }
   .tuner-measurements {
-    gap: 6px 12px;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  }
+  .tuner-target-readout {
+    padding-inline-start: 8px;
   }
   .tuner-mode button {
     padding: 8px;
@@ -799,11 +781,11 @@
     padding: 9px 10px 10px;
   }
   .tuner-note-area {
-    min-height: 86px;
-    padding: 0;
+    min-height: 98px;
+    padding-bottom: 8px;
   }
   .tuner-pitch-note {
-    font-size: 58px;
+    font-size: 54px;
   }
   .tuner-gauge {
     height: 39px;
@@ -813,7 +795,7 @@
     top: 20px;
   }
   .tuner-measurements {
-    margin-top: 3px;
+    padding-top: 5px;
   }
   .tuner-poly-area {
     min-height: 210px;
